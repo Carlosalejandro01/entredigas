@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  --stone-50: #faf7f2;
+  --stone-100: #f2ebe0;
+  --stone-200: #e4d7c3;
+  --stone-300: #cdb896;
+  --stone-700: #5c5346;
+  --stone-800: #3c362d;
+  --stone-900: #241f18;
+  --ink: #211d17;
+  --moss-600: #4a5d3a;
+  --moss-700: #3a4a2d;
+  --terracotta-500: #b5602f;
+  --terracotta-600: #9a4d24;
+  --cream: #fbf6ec;
+}
+
+@theme inline {
+  --color-background: var(--cream);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
+
+  --color-stone-50: var(--stone-50);
+  --color-stone-100: var(--stone-100);
+  --color-stone-200: var(--stone-200);
+  --color-stone-300: var(--stone-300);
+  --color-stone-700: var(--stone-700);
+  --color-stone-800: var(--stone-800);
+  --color-stone-900: var(--stone-900);
+  --color-moss-600: var(--moss-600);
+  --color-moss-700: var(--moss-700);
+  --color-terracotta-500: var(--terracotta-500);
+  --color-terracotta-600: var(--terracotta-600);
+  --color-cream: var(--cream);
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+.bg-linen {
+  background-color: var(--cream);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(60, 54, 45, 0.06) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+/* react-day-picker theming */
+.rdp-root {
+  --rdp-accent-color: var(--terracotta-500) !important;
+  --rdp-accent-background-color: rgba(181, 96, 47, 0.12) !important;
+  --rdp-today-color: var(--terracotta-600) !important;
+  --rdp-day-height: 2.75rem !important;
+  --rdp-day-width: 2.75rem !important;
+  font-family: var(--font-body), sans-serif;
+}
+
+.rdp-day_disabled {
+  text-decoration: line-through;
+  opacity: 0.35;
+}

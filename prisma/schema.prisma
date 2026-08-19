@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  guestName  String
+  email      String
+  phone      String
+  guests     Int
+  checkIn    DateTime
+  checkOut   DateTime
+  nights     Int
+  totalPrice Float
+  message    String?
+  status     BookingStatus @default(pending)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model BlockedRange {
+  id        String   @id @default(cuid())
+  start     DateTime
+  end       DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model Settings {
+  id            Int    @id @default(1)
+  pricePerNight Float  @default(75)
+  cleaningFee   Float  @default(35)
+  minNights     Int    @default(2)
+  currency      String @default("EUR")
+  contactEmail  String @default("")
+  contactPhone  String @default("")
+  updatedAt     DateTime @updatedAt
+}
