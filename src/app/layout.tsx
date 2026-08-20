@@ -16,9 +16,9 @@ const body = Karla({
 });
 
 export const metadata: Metadata = {
-  title: "Entre Vigas · Apartamento con encanto en Santillana del Mar",
+  title: "Entre Vigas · Apartamento en Santillana del Mar",
   description:
-    "Apartamento rural en el corazón de Santillana del Mar, a pasos de la Colegiata. Reserva directa online, sin comisiones de intermediarios.",
+    "Apartamento cómodo y bien equipado en el centro de Santillana del Mar, para hasta 6 personas. Reserva directa, sin comisiones de intermediarios.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

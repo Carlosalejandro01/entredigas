@@ -7,11 +7,11 @@ import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/booking";
 import { IconCheck, IconMapPin, IconStar, IconUsers } from "@/components/icons";
 
-const DEFAULT_HERO_TITLE = "Dormir entre vigas, a dos pasos de la Colegiata";
+const DEFAULT_HERO_TITLE = "Céntrico. Cómodo. Para hasta 6.";
 const DEFAULT_HERO_SUBTITLE =
-  'Apartamento rural íntegramente restaurado en una casona montañesa del siglo XVIII, en el corazón del casco histórico de "el pueblo de las tres mentiras". Piedra, madera noble y todas las comodidades para tu escapada a la Costa Verde.';
+  "Apartamento en el centro de Santillana del Mar, con dos habitaciones, dos baños y todo lo necesario para estar bien. Buena base para recorrer Cantabria sin complicarte.";
 const DEFAULT_ABOUT_TEXT =
-  "Entre Vigas ocupa la planta de una antigua casona cántabra, con muros de sillería, suelos de madera maciza y las vigas originales que le dan nombre. Un espacio pensado para familias y grupos de amigos, a un minuto a pie de la Colegiata de Santa Juliana y de las calles empedradas del casco histórico.\n\nIdeal como base para visitar las Cuevas de Altamira, el Museo de Altamira, la costa de Comillas y Santander, sin renunciar a volver cada noche a un lugar con carácter.";
+  "Entre Vigas tiene capacidad para hasta 6 personas, en pleno centro de Santillana del Mar. Cocina completa, dos baños, balcón y parking propio: lo que hace falta para no echar nada en falta.\n\nBuena base para moverte por Cantabria: las Cuevas de Altamira, la costa de Comillas y Santander te quedan cerca, y cada noche vuelves a un sitio tranquilo y bien equipado.";
 const FALLBACK_MAPS_URL =
   "https://www.google.com/maps/search/?api=1&query=" +
   encodeURIComponent("Entre Vigas, Av. Antonio Sandi 1, Santillana del Mar, Cantabria");
@@ -30,7 +30,7 @@ const DEFAULT_AMENITY_LABELS = [
 
 const fallbackGallery = [
   { src: "/gallery/salon.jpg", alt: "Salón comedor con vigas de madera a la vista" },
-  { src: "/gallery/fachada.jpg", alt: "Fachada de la casona en el casco histórico" },
+  { src: "/gallery/fachada.jpg", alt: "Fachada del edificio en el casco histórico" },
   { src: "/gallery/dormitorio-vigas.jpg", alt: "Segundo dormitorio, bajo las vigas originales" },
   { src: "/gallery/dormitorio-principal.jpg", alt: "Dormitorio principal" },
   { src: "/gallery/bano.jpg", alt: "Baño con ducha" },
@@ -128,7 +128,7 @@ export default async function Home() {
                 El apartamento
               </p>
               <h2 className="mt-3 font-display text-3xl text-stone-900 sm:text-4xl">
-                Autenticidad montañesa con todas las comodidades
+                Cómodo, práctico y bien equipado
               </h2>
               {aboutText.split("\n\n").map((paragraph, i) => (
                 <p key={i} className="mt-4 whitespace-pre-line text-stone-700 first:mt-5">
@@ -214,14 +214,11 @@ export default async function Home() {
                 Ubicación
               </p>
               <h2 className="mt-3 font-display text-3xl text-stone-900 sm:text-4xl">
-                En el corazón de Santillana del Mar
+                Fácil de encontrar, fácil de recorrer
               </h2>
               <p className="mt-5 text-stone-700">
-                Declarado Conjunto Histórico-Artístico, Santillana del Mar es
-                uno de los pueblos mejor conservados de España. Sus calles
-                empedradas, casonas blasonadas y la Colegiata románica de
-                Santa Juliana están a un paseo desde la puerta del
-                apartamento.
+                Santillana del Mar se recorre a pie en pocos minutos. Deja el
+                coche aparcado y muévete caminando durante toda la estancia.
               </p>
               <a
                 href={mapsUrl}
@@ -236,7 +233,6 @@ export default async function Home() {
                 <li>🚗 5 min de las Cuevas de Altamira</li>
                 <li>🚗 25 min de Santander y su aeropuerto</li>
                 <li>🚗 30 min de Comillas y San Vicente de la Barquera</li>
-                <li>🚶 2 min a pie de la Colegiata de Santa Juliana</li>
               </ul>
               <div className="mt-8 flex flex-wrap gap-4">
                 <a

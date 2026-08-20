@@ -859,7 +859,7 @@ function SettingsTab({
           <input
             value={form.heroTitle}
             onChange={(e) => setForm({ ...form, heroTitle: e.target.value })}
-            placeholder="Dormir entre vigas, a dos pasos de la Colegiata"
+            placeholder="Céntrico. Cómodo. Para hasta 6."
             className="rounded-lg border border-stone-200 px-3 py-2"
           />
         </label>
