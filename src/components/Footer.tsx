@@ -19,6 +19,11 @@ export default async function Footer() {
             Apartamento rural en el centro histórico de Santillana del Mar,
             Cantabria. Reserva directa, sin intermediarios.
           </p>
+          {settings.licenseNumber && (
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-1.5 text-xs font-semibold text-stone-200">
+              Vivienda de uso turístico · nº {settings.licenseNumber}
+            </p>
+          )}
           {settings.googleReviewUrl && (
             <a
               href={settings.googleReviewUrl}

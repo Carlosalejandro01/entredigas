@@ -242,6 +242,11 @@ export default async function Home() {
                 <IconMapPin className="h-4 w-4 shrink-0" />
                 Av. Antonio Sandi, 1 · Santillana del Mar, Cantabria
               </a>
+              {settings.licenseNumber && (
+                <p className="mt-2 text-sm font-medium text-stone-500">
+                  Vivienda de uso turístico · nº {settings.licenseNumber}
+                </p>
+              )}
               <ul className="mt-6 space-y-3 text-sm text-stone-700">
                 <li>🚗 5 min de las Cuevas de Altamira</li>
                 <li>🚗 25 min de Santander y su aeropuerto</li>
