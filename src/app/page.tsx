@@ -11,7 +11,7 @@ const DEFAULT_HERO_TITLE = "Céntrico. Cómodo. Para hasta 6.";
 const DEFAULT_HERO_SUBTITLE =
   "Apartamento en el centro de Santillana del Mar, con dos habitaciones, dos baños y todo lo necesario para estar bien. Buena base para recorrer Cantabria sin complicarte.";
 const DEFAULT_ABOUT_TEXT =
-  "Entre Vigas tiene capacidad para hasta 6 personas, en pleno centro de Santillana del Mar. Cocina completa, dos baños, balcón y parking propio: lo que hace falta para no echar nada en falta.\n\nBuena base para moverte por Cantabria: las Cuevas de Altamira, la costa de Comillas y Santander te quedan cerca, y cada noche vuelves a un sitio tranquilo y bien equipado.";
+  "Entre Vigas es un apartamento recién reformado en pleno casco histórico de Santillana del Mar. Vigas de madera originales, luz natural y todos los detalles pensados para que te sientas como en casa desde el primer momento.\n\nUn lugar ideal para desconectar, perderte por las calles empedradas del pueblo y usarlo como punto de partida para descubrir Santander, las playas de Suances o las Cuevas de Altamira.\n\nCapacidad para 6 personas, totalmente equipado, con Wifi y todo lo necesario para una estancia tranquila y sin complicaciones.";
 const FALLBACK_MAPS_URL =
   "https://www.google.com/maps/search/?api=1&query=" +
   encodeURIComponent("Entre Vigas, Av. Antonio Sandi 1, Santillana del Mar, Cantabria");
