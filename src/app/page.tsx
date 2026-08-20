@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookingWidget from "@/components/BookingWidget";
@@ -189,12 +190,21 @@ export default function Home() {
                 Santa Juliana están a un paseo desde la puerta del
                 apartamento.
               </p>
+              <p className="mt-5 text-sm font-medium text-stone-500">
+                Av. Antonio Sandi, 1 · Santillana del Mar, Cantabria
+              </p>
               <ul className="mt-6 space-y-3 text-sm text-stone-700">
                 <li>🚗 5 min de las Cuevas de Altamira</li>
                 <li>🚗 25 min de Santander y su aeropuerto</li>
                 <li>🚗 30 min de Comillas y San Vicente de la Barquera</li>
                 <li>🚶 2 min a pie de la Colegiata de Santa Juliana</li>
               </ul>
+              <Link
+                href="/guia"
+                className="mt-8 inline-flex items-center gap-2 rounded-full border border-stone-300 px-6 py-3 text-sm font-semibold text-stone-800 transition hover:bg-white"
+              >
+                Ver la guía completa de la zona →
+              </Link>
             </div>
             <div className="overflow-hidden rounded-2xl border border-stone-200 shadow-lg">
               <iframe

@@ -1,10 +1,11 @@
 import Link from "next/link";
 
 const links = [
-  { href: "#apartamento", label: "El apartamento" },
-  { href: "#galeria", label: "Galería" },
-  { href: "#ubicacion", label: "Ubicación" },
-  { href: "#reservar", label: "Reservar" },
+  { href: "/#apartamento", label: "El apartamento" },
+  { href: "/#galeria", label: "Galería" },
+  { href: "/#ubicacion", label: "Ubicación" },
+  { href: "/guia", label: "Guía de la zona" },
+  { href: "/#reservar", label: "Reservar" },
 ];
 
 export default function Header() {
@@ -19,17 +20,17 @@ export default function Header() {
         </Link>
         <nav className="hidden items-center gap-7 text-sm font-medium text-stone-700 md:flex">
           {links.map((l) => (
-            <a key={l.href} href={l.href} className="transition hover:text-terracotta-600">
+            <Link key={l.href} href={l.href} className="transition hover:text-terracotta-600">
               {l.label}
-            </a>
+            </Link>
           ))}
         </nav>
-        <a
-          href="#reservar"
+        <Link
+          href="/#reservar"
           className="rounded-full bg-stone-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-stone-800"
         >
           Reservar
-        </a>
+        </Link>
       </div>
     </header>
   );

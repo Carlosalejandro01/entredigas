@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { IconMail, IconMapPin, IconPhone } from "@/components/icons";
 
 export default function Footer() {
@@ -17,7 +18,7 @@ export default function Footer() {
           </p>
           <p className="flex items-center gap-2">
             <IconMapPin className="h-4 w-4 shrink-0 text-terracotta-500" />
-            Santillana del Mar, Cantabria
+            Av. Antonio Sandi, 1 · Santillana del Mar
           </p>
           <p className="mt-2 flex items-center gap-2">
             <IconPhone className="h-4 w-4 shrink-0 text-terracotta-500" />
@@ -36,15 +37,18 @@ export default function Footer() {
           <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-stone-500 uppercase">
             Enlaces
           </p>
-          <a href="#reservar" className="block hover:text-white">
+          <Link href="/#reservar" className="block hover:text-white">
             Reservar
-          </a>
-          <a href="#ubicacion" className="mt-2 block hover:text-white">
+          </Link>
+          <Link href="/#ubicacion" className="mt-2 block hover:text-white">
             Cómo llegar
-          </a>
-          <a href="/admin" className="mt-2 block text-stone-500 hover:text-stone-300">
+          </Link>
+          <Link href="/guia" className="mt-2 block hover:text-white">
+            Guía de la zona
+          </Link>
+          <Link href="/admin" className="mt-2 block text-stone-500 hover:text-stone-300">
             Acceso propietario
-          </a>
+          </Link>
         </div>
       </div>
       <div className="border-t border-white/10 py-5 text-center text-xs text-stone-500">

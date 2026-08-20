@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const COOKIE_NAME = "entredigas_admin";
+const COOKIE_NAME = "entrevigas_admin";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12h
 
 function secret() {
