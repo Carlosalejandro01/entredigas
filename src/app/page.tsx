@@ -29,12 +29,17 @@ const DEFAULT_AMENITY_LABELS = [
 ];
 
 const fallbackGallery = [
+  { src: "/gallery/salon-sofa.jpg", alt: "Salón con sofá y vigas de madera a la vista" },
+  { src: "/gallery/comedor.jpg", alt: "Mesa de comedor para seis" },
   { src: "/gallery/salon.jpg", alt: "Salón comedor con vigas de madera a la vista" },
   { src: "/gallery/fachada.jpg", alt: "Fachada del edificio en el casco histórico" },
-  { src: "/gallery/dormitorio-vigas.jpg", alt: "Segundo dormitorio, bajo las vigas originales" },
+  { src: "/gallery/dormitorio-principal-ventana.jpg", alt: "Dormitorio principal con vistas y baño en suite" },
   { src: "/gallery/dormitorio-principal.jpg", alt: "Dormitorio principal" },
+  { src: "/gallery/dormitorio-principal-armario.jpg", alt: "Dormitorio principal, armario empotrado" },
+  { src: "/gallery/dormitorio-vigas.jpg", alt: "Segundo dormitorio, bajo las vigas originales" },
   { src: "/gallery/bano.jpg", alt: "Baño con ducha" },
   { src: "/gallery/cocina.jpg", alt: "Cocina con vistas al parque de Santillana" },
+  { src: "/gallery/cocina-electrodomesticos.jpg", alt: "Cocina totalmente equipada" },
   { src: "/gallery/balcon.jpg", alt: "Balcón con vistas al jardín" },
   { src: "/gallery/placa.jpg", alt: "Placa oficial de vivienda vacacional" },
 ];
