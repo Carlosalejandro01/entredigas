@@ -41,12 +41,25 @@ Es donde se guardarán tus reservas, precios, etc.
 5. En unos segundos verás la pantalla del proyecto con un recuadro
    que pone **"Connection string"**, con un texto que empieza por
    `postgresql://...` y un botón para copiarlo (icono de dos
-   cuadraditos).
-6. **Pulsa el botón de copiar** y guarda ese texto en algún sitio a
-   mano (una nota, un email a ti mismo) — es largo y lo vas a
-   necesitar en el Paso 2. Si más adelante lo pierdes, siempre puedes
-   volver a Neon → tu proyecto → botón **"Connect"** para verlo de
-   nuevo.
+   cuadraditos). Vas a necesitar **dos variantes** de esa cadena:
+
+   - **La que ves por defecto** (con `-pooler` en medio de la
+     dirección, algo como `...ep-xxx-pooler.eu-central-1.aws.neon.tech...`).
+     Cópiala y guárdala como **`DATABASE_URL`**.
+   - Justo al lado o debajo suele haber un interruptor o enlace que
+     dice **"Pooled connection"** — desactívalo (o pulsa el enlace
+     equivalente a "Direct connection" / "Disable pooling"). La
+     cadena cambia y ya **no** lleva `-pooler`. Cópiala y guárdala
+     como **`DIRECT_URL`**.
+
+   Guarda las dos en algún sitio a mano (una nota, un email a ti
+   mismo) — las vas a necesitar en el Paso 2. Si más adelante las
+   pierdes, siempre puedes volver a Neon → tu proyecto → botón
+   **"Connect"** para verlas de nuevo.
+
+   *(Si tu proyecto de Neon no muestra ese interruptor y solo te da
+   una cadena, no pasa nada: usa esa misma cadena para las dos
+   variables, `DATABASE_URL` y `DIRECT_URL`.)*
 
 ---
 
@@ -73,19 +86,15 @@ Es donde se guardarán tus reservas, precios, etc.
    configurado en el proyecto.
 9. Antes de darle a publicar, despliega la sección
    **"Environment Variables"** (pulsa sobre el título para que se
-   abra). Vas a añadir dos variables, una por una:
+   abra). Vas a añadir tres variables, una por una — escribe el
+   nombre, pega/escribe el valor, y pulsa **"Add"** antes de pasar a
+   la siguiente:
 
-   - Primera fila:
-     - **Key** (o "Name"): `DATABASE_URL`
-     - **Value**: pega aquí el texto `postgresql://...` que copiaste
-       de Neon en el Paso 1.
-     - Pulsa **"Add"**.
-   - Segunda fila:
-     - **Key**: `ADMIN_PASSWORD`
-     - **Value**: escribe una contraseña que tú elijas para entrar
-       al panel de administración de tu web (apúntala en algún
-       sitio, la necesitarás en el Paso 3).
-     - Pulsa **"Add"**.
+   | Key (Name) | Value |
+   |---|---|
+   | `DATABASE_URL` | la cadena **con** `-pooler` que copiaste de Neon |
+   | `DIRECT_URL` | la cadena **sin** `-pooler` que copiaste de Neon |
+   | `ADMIN_PASSWORD` | una contraseña que tú elijas para entrar al panel de administración (apúntala, la necesitarás en el Paso 3) |
 
 10. Pulsa el botón azul **"Deploy"**.
 11. Vercel se pone a trabajar: instala el proyecto, prepara la base
@@ -100,6 +109,25 @@ Es donde se guardarán tus reservas, precios, etc.
 
 **Esa URL ya es tu web, publicada y visible para cualquiera.** Ábrela
 en una pestaña nueva y échale un vistazo.
+
+### Si el despliegue te dio "Build Failed"
+
+Es lo que te pasó la primera vez: faltaba la variable `DIRECT_URL`
+(ya la he añadido al proyecto, así que si repites el Paso 2 desde
+cero no debería volver a pasar). Si ya tienes un proyecto en Vercel
+con el error "Build Failed", arréglalo así sin tener que volver a
+crear nada:
+
+1. En tu proyecto de Vercel, ve a **Settings** → **Environment
+   Variables**.
+2. Comprueba que están las tres: `DATABASE_URL`, `DIRECT_URL` y
+   `ADMIN_PASSWORD`. Si falta `DIRECT_URL`, añádela (la cadena de
+   Neon **sin** `-pooler`, tal como se explica en el Paso 1).
+3. Ve a la pestaña **Deployments**, abre el desplegado más reciente
+   (el que falló), pulsa el menú **"..."** de arriba a la derecha →
+   **"Redeploy"** → confirma.
+4. Espera 1-2 minutos y comprueba que esta vez pone **"Ready"** en
+   verde en vez de "Error".
 
 ---
 
