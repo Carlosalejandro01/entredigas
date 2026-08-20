@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -7,32 +8,33 @@ import {
   IconFireplace,
   IconKitchen,
   IconMapPin,
-  IconMountain,
-  IconParking,
-  IconPet,
   IconUsers,
   IconWasher,
   IconWifi,
 } from "@/components/icons";
 
 const amenities = [
-  { icon: IconBed, label: "2 habitaciones dobles" },
+  { icon: IconBed, label: "2 dormitorios" },
   { icon: IconUsers, label: "Hasta 4 huéspedes" },
   { icon: IconWifi, label: "Wifi de alta velocidad" },
-  { icon: IconKitchen, label: "Cocina completa" },
-  { icon: IconFireplace, label: "Chimenea de piedra" },
+  { icon: IconKitchen, label: "Cocina totalmente equipada" },
   { icon: IconWasher, label: "Lavadora" },
-  { icon: IconParking, label: "Parking gratuito" },
-  { icon: IconPet, label: "Admite mascotas" },
+  { icon: IconFireplace, label: "Calefacción en toda la casa" },
 ];
 
 const gallery = [
-  "Fachada de piedra y vigas de castaño",
-  "Salón con chimenea original",
-  "Cocina completa reformada",
-  "Dormitorio principal",
-  "Baño con bañera de hidromasaje",
-  "Terraza con vistas a la Colegiata",
+  {
+    src: "/gallery/salon.jpg",
+    alt: "Salón comedor con vigas de madera a la vista",
+    wide: true,
+  },
+  { src: "/gallery/fachada.jpg", alt: "Fachada de la casona en el casco histórico" },
+  { src: "/gallery/dormitorio-vigas.jpg", alt: "Segundo dormitorio, bajo las vigas originales" },
+  { src: "/gallery/dormitorio-principal.jpg", alt: "Dormitorio principal" },
+  { src: "/gallery/bano.jpg", alt: "Baño con ducha" },
+  { src: "/gallery/cocina.jpg", alt: "Cocina con vistas al parque de Santillana" },
+  { src: "/gallery/balcon.jpg", alt: "Balcón con vistas al jardín" },
+  { src: "/gallery/placa.jpg", alt: "Placa oficial de vivienda vacacional" },
 ];
 
 export default function Home() {
@@ -75,16 +77,15 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-stone-200 bg-gradient-to-br from-stone-200 via-stone-100 to-terracotta-500/20 shadow-2xl">
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8 text-center">
-                <IconMountain className="h-10 w-10 text-stone-500" />
-                <p className="font-display text-lg text-stone-600">
-                  Fotografía del apartamento
-                </p>
-                <p className="text-xs text-stone-500">
-                  (sustituye esta imagen en /public/gallery)
-                </p>
-              </div>
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-stone-200 shadow-2xl">
+              <Image
+                src="/gallery/hero.jpg"
+                alt="Salón del apartamento Entre Vigas, con la viga de roble original a la vista"
+                fill
+                priority
+                sizes="(min-width: 1024px) 40vw, 90vw"
+                className="object-cover"
+              />
             </div>
           </div>
         </section>
@@ -137,17 +138,22 @@ export default function Home() {
               Cada rincón cuenta una historia
             </h2>
             <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {gallery.map((caption, i) => (
+              {gallery.map((photo) => (
                 <div
-                  key={caption}
-                  className={`group relative overflow-hidden rounded-2xl border border-stone-200 bg-gradient-to-br from-stone-200 to-stone-100 ${
-                    i === 0 ? "col-span-2 aspect-[16/10] sm:col-span-2" : "aspect-square"
+                  key={photo.src}
+                  className={`group relative overflow-hidden rounded-2xl border border-stone-200 ${
+                    photo.wide ? "col-span-2 aspect-[16/10] sm:col-span-2" : "aspect-square"
                   }`}
                 >
-                  <div className="absolute inset-0 flex items-end p-4">
-                    <p className="text-xs font-medium text-stone-600">
-                      {caption}
-                    </p>
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    fill
+                    sizes={photo.wide ? "(min-width: 640px) 66vw, 100vw" : "(min-width: 640px) 33vw, 50vw"}
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <p className="text-xs font-medium text-white">{photo.alt}</p>
                   </div>
                 </div>
               ))}
