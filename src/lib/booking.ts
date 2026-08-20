@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { nightsBetween, rangesOverlap } from "@/lib/dates";
 
@@ -7,6 +8,12 @@ export async function getSettings() {
     update: {},
     create: { id: 1 },
   });
+  if (!settings.icalExportToken) {
+    return prisma.settings.update({
+      where: { id: 1 },
+      data: { icalExportToken: crypto.randomBytes(16).toString("hex") },
+    });
+  }
   return settings;
 }
 

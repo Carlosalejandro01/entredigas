@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconMail, IconMapPin, IconPhone } from "@/components/icons";
+import { IconInstagram, IconMail, IconMapPin, IconPhone } from "@/components/icons";
 
 export default function Footer() {
   return (
@@ -22,14 +22,28 @@ export default function Footer() {
           </p>
           <p className="mt-2 flex items-center gap-2">
             <IconPhone className="h-4 w-4 shrink-0 text-terracotta-500" />
-            <a href="tel:+34600000000" className="hover:text-white">
-              +34 600 000 000
+            <a href="tel:+34634218140" className="hover:text-white">
+              +34 634 218 140
             </a>
           </p>
           <p className="mt-2 flex items-center gap-2">
             <IconMail className="h-4 w-4 shrink-0 text-terracotta-500" />
-            <a href="mailto:reservas@entrevigas.es" className="hover:text-white">
-              reservas@entrevigas.es
+            <a
+              href="mailto:entrevigasapartamentosdm@gmail.com"
+              className="hover:text-white"
+            >
+              entrevigasapartamentosdm@gmail.com
+            </a>
+          </p>
+          <p className="mt-2 flex items-center gap-2">
+            <IconInstagram className="h-4 w-4 shrink-0 text-terracotta-500" />
+            <a
+              href="https://instagram.com/entrevigasapartamento"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white"
+            >
+              @entrevigasapartamento
             </a>
           </p>
         </div>

@@ -25,9 +25,11 @@ Abre [http://localhost:3000](http://localhost:3000).
   (cliente).
 - `src/app/admin` — panel privado del propietario (`/admin`), protegido
   por `ADMIN_PASSWORD`.
-- `src/app/api/*` — endpoints: disponibilidad, creación de reservas y
-  gestión de administración (reservas, precios, bloqueos manuales).
-- `prisma/schema.prisma` — modelos `Booking`, `BlockedRange` y `Settings`.
+- `src/app/api/*` — endpoints: disponibilidad, creación de reservas,
+  gestión de administración (reservas, precios, bloqueos manuales) y
+  sincronización de calendario iCal con Booking.com.
+- `prisma/schema.prisma` — modelos `Booking`, `BlockedRange`,
+  `ExternalCalendar` y `Settings`.
 
 ## Cómo se evita el doble reserva
 
@@ -47,14 +49,41 @@ Accede con la contraseña de `ADMIN_PASSWORD`. Desde ahí puedes:
 - Cambiar el precio por noche, la tasa de limpieza, la estancia mínima y
   los datos de contacto.
 
-## Añadir fotos reales
+## Sincronización con Booking.com (iCal)
 
-Las secciones "Hero" y "Galería" de `src/app/page.tsx` usan bloques de
-marcador de posición. Sustitúyelos por imágenes reales:
+Desde `/admin` → pestaña **"Booking.com / iCal"**:
 
-1. Copia tus fotos a `public/gallery/`.
-2. Cambia los `div` de marcador por `<Image src="/gallery/tu-foto.jpg" .../>`
-   usando `next/image`.
+1. **Exportar hacia Booking.com**: copia el enlace de exportación que
+   te da la web y pégalo en Booking.com Extranet → *Tarifas y
+   disponibilidad* → *Sincronizar calendarios* → importar calendario.
+   Así Booking.com bloquea automáticamente las fechas reservadas en tu
+   web.
+2. **Importar desde Booking.com**: en la misma sección de Booking.com,
+   copia su enlace de "Exportar calendario" y pégalo en el formulario
+   de esa pestaña. La web sincroniza ese calendario cada 30 minutos
+   (y también se puede forzar con "Sincronizar ahora"), y las fechas
+   reservadas en Booking.com pasan a bloquearse en el calendario
+   público y en las nuevas reservas.
+
+El mismo mecanismo funciona con Airbnb o cualquier otra plataforma que
+ofrezca un enlace iCal (`.ics`).
+
+**Limitación a tener en cuenta**: la sincronización por iCal (el
+estándar que usan también Airbnb y el propio Booking.com entre
+plataformas) no es instantánea — Booking.com solo actualiza su feed
+cada pocas horas. Reduce muchísimo el riesgo de doble reserva, pero no
+lo elimina al 100 % en el margen de esas horas. Para una garantía
+total haría falta un *channel manager* certificado con la API de
+Booking.com, que requiere una integración y un acuerdo comercial
+aparte.
+
+## Fotos
+
+Las fotos del hero y la galería viven en `public/gallery/` y se
+referencian desde `src/app/page.tsx`. Para cambiarlas o añadir más,
+copia la imagen a `public/gallery/` y añade/edita la entrada
+correspondiente en el array `gallery` (o el `<Image src="/gallery/...">`
+del hero) de ese archivo.
 
 ## Despliegue en producción
 

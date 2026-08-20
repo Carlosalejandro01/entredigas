@@ -31,9 +31,19 @@ type BlockedRange = {
   start: string;
   end: string;
   reason: string | null;
+  source: string;
 };
 
-type Tab = "reservas" | "bloqueos" | "ajustes";
+type ExternalCalendar = {
+  id: string;
+  name: string;
+  icalUrl: string;
+  lastSyncedAt: string | null;
+  lastSyncError: string | null;
+  lastSyncCount: number | null;
+};
+
+type Tab = "reservas" | "bloqueos" | "sync" | "ajustes";
 
 function fmtDate(s: string) {
   return new Intl.DateTimeFormat("es-ES", {
@@ -64,17 +74,22 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [blocked, setBlocked] = useState<BlockedRange[] | null>(null);
+  const [calendars, setCalendars] = useState<ExternalCalendar[] | null>(null);
+  const [exportUrl, setExportUrl] = useState<string>("");
   const [notice, setNotice] = useState<string | null>(null);
 
   async function loadAll() {
-    const [b, s, bl] = await Promise.all([
+    const [b, s, bl, ic] = await Promise.all([
       fetch("/api/admin/bookings").then((r) => r.json()),
       fetch("/api/admin/settings").then((r) => r.json()),
       fetch("/api/admin/blocked").then((r) => r.json()),
+      fetch("/api/admin/ical").then((r) => r.json()),
     ]);
     setBookings(b.bookings ?? []);
     setSettings(s.settings ?? null);
     setBlocked(bl.blocked ?? []);
+    setCalendars(ic.calendars ?? []);
+    setExportUrl(ic.exportUrl ?? "");
   }
 
   useEffect(() => {
@@ -136,6 +151,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             [
               ["reservas", "Reservas"],
               ["bloqueos", "Bloqueos manuales"],
+              ["sync", "Booking.com / iCal"],
               ["ajustes", "Precios y ajustes"],
             ] as [Tab, string][]
           ).map(([id, label]) => (
@@ -170,6 +186,14 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         )}
         {tab === "bloqueos" && (
           <BlockedTab blocked={blocked} onChanged={loadAll} onNotice={flash} />
+        )}
+        {tab === "sync" && (
+          <SyncTab
+            calendars={calendars}
+            exportUrl={exportUrl}
+            onChanged={loadAll}
+            onNotice={flash}
+          />
         )}
         {tab === "ajustes" && (
           <SettingsTab settings={settings} onChanged={loadAll} onNotice={flash} />
@@ -377,26 +401,242 @@ function BlockedTab({
             No hay bloqueos manuales.
           </p>
         ) : (
-          blocked.map((b) => (
-            <div
-              key={b.id}
-              className="flex items-center justify-between rounded-xl border border-stone-200 bg-white p-4"
-            >
-              <div>
-                <p className="text-sm font-medium text-stone-900">
-                  {fmtDate(b.start)} — {fmtDate(b.end)}
-                </p>
-                {b.reason && <p className="text-xs text-stone-500">{b.reason}</p>}
-              </div>
-              <button
-                onClick={() => handleDelete(b.id)}
-                className="rounded-full px-3 py-1.5 text-xs font-semibold text-terracotta-600 hover:bg-terracotta-500/10"
+          blocked.map((b) => {
+            const isSynced = b.source.startsWith("ical:");
+            return (
+              <div
+                key={b.id}
+                className="flex items-center justify-between rounded-xl border border-stone-200 bg-white p-4"
               >
-                Quitar
-              </button>
-            </div>
-          ))
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-stone-900">
+                      {fmtDate(b.start)} — {fmtDate(b.end)}
+                    </p>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        isSynced ? "bg-sky-100 text-sky-700" : "bg-stone-100 text-stone-600"
+                      }`}
+                    >
+                      {isSynced ? "Sincronizado" : "Manual"}
+                    </span>
+                  </div>
+                  {b.reason && <p className="text-xs text-stone-500">{b.reason}</p>}
+                </div>
+                {isSynced ? (
+                  <span className="text-xs text-stone-400">
+                    Gestionado en la pestaña Booking.com / iCal
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => handleDelete(b.id)}
+                    className="rounded-full px-3 py-1.5 text-xs font-semibold text-terracotta-600 hover:bg-terracotta-500/10"
+                  >
+                    Quitar
+                  </button>
+                )}
+              </div>
+            );
+          })
         )}
+      </div>
+    </div>
+  );
+}
+
+function SyncTab({
+  calendars,
+  exportUrl,
+  onChanged,
+  onNotice,
+}: {
+  calendars: ExternalCalendar[] | null;
+  exportUrl: string;
+  onChanged: () => void;
+  onNotice: (msg: string) => void;
+}) {
+  const [name, setName] = useState("Booking.com");
+  const [icalUrl, setIcalUrl] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(exportUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard API unavailable; the URL is still selectable as text
+    }
+  }
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/ical", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, icalUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al añadir el calendario.");
+      setIcalUrl("");
+      onNotice(
+        data.calendar?.lastSyncError
+          ? `Calendario añadido, pero falló la primera sincronización: ${data.calendar.lastSyncError}`
+          : "Calendario conectado y sincronizado."
+      );
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("¿Desconectar este calendario? Sus fechas bloqueadas se liberarán.")) return;
+    const res = await fetch("/api/admin/ical", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      onNotice("Calendario desconectado.");
+      onChanged();
+    }
+  }
+
+  async function handleSyncNow() {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/admin/ical/sync", { method: "POST" });
+      if (res.ok) {
+        onNotice("Sincronización completada.");
+        onChanged();
+      }
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  return (
+    <div className="grid gap-8">
+      <div className="rounded-xl border border-stone-200 bg-white p-5">
+        <p className="font-display text-lg text-stone-900">
+          1. Exporta tu calendario a Booking.com
+        </p>
+        <p className="mt-2 text-sm text-stone-600">
+          Copia este enlace y pégalo en Booking.com Extranet → Tarifas y
+          disponibilidad → Sincronizar calendarios → &ldquo;Exportar
+          calendario&rdquo; (import URL). Así Booking.com verá las reservas
+          hechas en tu web.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <input
+            readOnly
+            value={exportUrl}
+            onFocus={(e) => e.target.select()}
+            className="min-w-0 flex-1 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600"
+          />
+          <button
+            onClick={handleCopy}
+            className="shrink-0 rounded-full bg-stone-900 px-4 py-2 text-xs font-semibold text-white hover:bg-stone-800"
+          >
+            {copied ? "¡Copiado!" : "Copiar"}
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-stone-200 bg-white p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="font-display text-lg text-stone-900">
+            2. Importa el calendario de Booking.com
+          </p>
+          <button
+            onClick={handleSyncNow}
+            disabled={syncing}
+            className="rounded-full border border-stone-300 px-4 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 disabled:opacity-60"
+          >
+            {syncing ? "Sincronizando…" : "Sincronizar ahora"}
+          </button>
+        </div>
+        <p className="mt-2 text-sm text-stone-600">
+          En Booking.com Extranet, en la misma sección, copia el enlace de
+          &ldquo;Exportar calendario&rdquo; de Booking.com y pégalo aquí. Se
+          sincroniza automáticamente cada 30 minutos, y también puedes
+          forzarlo con el botón de arriba.
+        </p>
+        <p className="mt-2 text-xs text-terracotta-600">
+          Ojo: Booking.com solo actualiza su feed cada pocas horas, así que
+          existe un pequeño margen en el que una reserva muy reciente en
+          Booking.com podría no reflejarse aún aquí.
+        </p>
+
+        <form onSubmit={handleAdd} className="mt-4 grid gap-3 sm:grid-cols-[160px_1fr_auto]">
+          <input
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Nombre (Booking.com)"
+            className="rounded-lg border border-stone-200 px-3 py-2 text-sm"
+          />
+          <input
+            required
+            type="url"
+            value={icalUrl}
+            onChange={(e) => setIcalUrl(e.target.value)}
+            placeholder="https://admin.booking.com/hotel/hoteladmin/ical.html?..."
+            className="rounded-lg border border-stone-200 px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={submitting}
+            className="rounded-full bg-terracotta-500 px-4 py-2 text-sm font-semibold text-white hover:bg-terracotta-600 disabled:opacity-60"
+          >
+            {submitting ? "Añadiendo…" : "Conectar"}
+          </button>
+        </form>
+        {error && <p className="mt-2 text-sm text-terracotta-600">{error}</p>}
+
+        <div className="mt-5 grid gap-3">
+          {!calendars ? (
+            <p className="text-sm text-stone-500">Cargando…</p>
+          ) : calendars.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-stone-300 p-4 text-center text-sm text-stone-500">
+              Todavía no has conectado ningún calendario externo.
+            </p>
+          ) : (
+            calendars.map((c) => (
+              <div
+                key={c.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-200 p-3"
+              >
+                <div>
+                  <p className="text-sm font-medium text-stone-900">{c.name}</p>
+                  <p className="text-xs text-stone-500">
+                    {c.lastSyncedAt
+                      ? `Última sincronización: ${new Date(c.lastSyncedAt).toLocaleString("es-ES")} · ${c.lastSyncCount ?? 0} eventos`
+                      : "Todavía sin sincronizar"}
+                  </p>
+                  {c.lastSyncError && (
+                    <p className="text-xs text-terracotta-600">Error: {c.lastSyncError}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleDelete(c.id)}
+                  className="rounded-full px-3 py-1.5 text-xs font-semibold text-terracotta-600 hover:bg-terracotta-500/10"
+                >
+                  Desconectar
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

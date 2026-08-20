@@ -38,16 +38,28 @@ model BlockedRange {
   start     DateTime
   end       DateTime
   reason    String?
+  source    String   @default("manual")
   createdAt DateTime @default(now())
 }
 
+model ExternalCalendar {
+  id            String    @id @default(cuid())
+  name          String
+  icalUrl       String
+  lastSyncedAt  DateTime?
+  lastSyncError String?
+  lastSyncCount Int?
+  createdAt     DateTime  @default(now())
+}
+
 model Settings {
-  id            Int    @id @default(1)
-  pricePerNight Float  @default(75)
-  cleaningFee   Float  @default(35)
-  minNights     Int    @default(2)
-  currency      String @default("EUR")
-  contactEmail  String @default("")
-  contactPhone  String @default("")
-  updatedAt     DateTime @updatedAt
+  id              Int      @id @default(1)
+  pricePerNight   Float    @default(75)
+  cleaningFee     Float    @default(35)
+  minNights       Int      @default(2)
+  currency        String   @default("EUR")
+  contactEmail    String   @default("entrevigasapartamentosdm@gmail.com")
+  contactPhone    String   @default("+34 634 218 140")
+  icalExportToken String   @default("")
+  updatedAt       DateTime @updatedAt
 }

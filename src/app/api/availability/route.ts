@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { getOccupiedRanges, getSettings } from "@/lib/booking";
 import { isoDate } from "@/lib/dates";
+import { syncAllCalendarsIfStale } from "@/lib/ical-sync";
 
 export async function GET() {
+  syncAllCalendarsIfStale();
   const [occupied, settings] = await Promise.all([getOccupiedRanges(), getSettings()]);
 
   return NextResponse.json({
