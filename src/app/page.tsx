@@ -5,17 +5,7 @@ import Footer from "@/components/Footer";
 import BookingWidget from "@/components/BookingWidget";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/booking";
-import {
-  IconBed,
-  IconFireplace,
-  IconKitchen,
-  IconMapPin,
-  IconParking,
-  IconStar,
-  IconUsers,
-  IconWasher,
-  IconWifi,
-} from "@/components/icons";
+import { IconCheck, IconMapPin, IconStar, IconUsers } from "@/components/icons";
 
 const DEFAULT_HERO_TITLE = "Dormir entre vigas, a dos pasos de la Colegiata";
 const DEFAULT_HERO_SUBTITLE =
@@ -25,6 +15,18 @@ const DEFAULT_ABOUT_TEXT =
 const FALLBACK_MAPS_URL =
   "https://www.google.com/maps/search/?api=1&query=" +
   encodeURIComponent("Entre Vigas, Av. Antonio Sandi 1, Santillana del Mar, Cantabria");
+
+const DEFAULT_AMENITY_LABELS = [
+  "2 dormitorios",
+  "2 camas de 1,05 m, 1 cama de 1,50 m y sofá cama de 1,30 m",
+  "2 baños: uno con ducha y otro de aseo (sin ducha)",
+  "Balcón con vistas a la carretera general",
+  "Wifi de alta velocidad",
+  "Cocina totalmente equipada",
+  "Lavadora",
+  "Calefacción en toda la casa",
+  "Parking propio",
+];
 
 const fallbackGallery = [
   { src: "/gallery/salon.jpg", alt: "Salón comedor con vigas de madera a la vista" },
@@ -38,7 +40,7 @@ const fallbackGallery = [
 ];
 
 export default async function Home() {
-  const [settings, heroPhoto, galleryPhotos] = await Promise.all([
+  const [settings, heroPhoto, galleryPhotos, dbAmenities] = await Promise.all([
     getSettings(),
     prisma.photo.findFirst({
       where: { section: "hero" },
@@ -50,6 +52,7 @@ export default async function Home() {
       orderBy: { order: "asc" },
       select: { id: true, alt: true },
     }),
+    prisma.amenity.findMany({ orderBy: { order: "asc" }, select: { id: true, label: true } }),
   ]);
 
   const mapsUrl = settings.googleMapsUrl || FALLBACK_MAPS_URL;
@@ -66,15 +69,8 @@ export default async function Home() {
       ? galleryPhotos.map((p) => ({ src: `/api/photos/${p.id}`, alt: p.alt || "Entre Vigas" }))
       : fallbackGallery;
 
-  const amenities = [
-    { icon: IconBed, label: "2 dormitorios" },
-    { icon: IconUsers, label: `Hasta ${settings.maxGuests} huéspedes` },
-    { icon: IconWifi, label: "Wifi de alta velocidad" },
-    { icon: IconKitchen, label: "Cocina totalmente equipada" },
-    { icon: IconWasher, label: "Lavadora" },
-    { icon: IconFireplace, label: "Calefacción en toda la casa" },
-    { icon: IconParking, label: "Parking propio" },
-  ];
+  const amenityLabels =
+    dbAmenities.length > 0 ? dbAmenities.map((a) => a.label) : DEFAULT_AMENITY_LABELS;
 
   return (
     <>
@@ -141,12 +137,16 @@ export default async function Home() {
               ))}
             </div>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
-              {amenities.map(({ icon: Icon, label }) => (
+              <div className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white/70 px-4 py-3.5">
+                <IconUsers className="h-5 w-5 shrink-0 text-terracotta-600" />
+                <span className="text-sm text-stone-800">Hasta {settings.maxGuests} huéspedes</span>
+              </div>
+              {amenityLabels.map((label) => (
                 <div
                   key={label}
                   className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white/70 px-4 py-3.5"
                 >
-                  <Icon className="h-5 w-5 shrink-0 text-terracotta-600" />
+                  <IconCheck className="h-5 w-5 shrink-0 text-terracotta-600" />
                   <span className="text-sm text-stone-800">{label}</span>
                 </div>
               ))}

@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DayPicker } from "react-day-picker";
+import { es } from "react-day-picker/locale";
+import "react-day-picker/style.css";
 
 type Booking = {
   id: string;
@@ -43,6 +46,8 @@ type Photo = {
 
 type SeasonalRate = { month: number; pricePerNight: number };
 type GuestRate = { guests: number; percent: number };
+type DateRate = { date: string; pricePerNight: number };
+type Amenity = { id: string; label: string; order: number };
 
 const MONTH_NAMES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -66,7 +71,7 @@ type ExternalCalendar = {
   lastSyncCount: number | null;
 };
 
-type Tab = "reservas" | "bloqueos" | "sync" | "fotos" | "precios" | "ajustes";
+type Tab = "reservas" | "bloqueos" | "sync" | "fotos" | "precios" | "detalles" | "ajustes";
 
 function fmtDate(s: string) {
   return new Intl.DateTimeFormat("es-ES", {
@@ -102,16 +107,19 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [photos, setPhotos] = useState<Photo[] | null>(null);
   const [seasonalRates, setSeasonalRates] = useState<SeasonalRate[] | null>(null);
   const [guestRates, setGuestRates] = useState<GuestRate[] | null>(null);
+  const [dateRates, setDateRates] = useState<DateRate[] | null>(null);
+  const [amenities, setAmenities] = useState<Amenity[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   async function loadAll() {
-    const [b, s, bl, ic, ph, pr] = await Promise.all([
+    const [b, s, bl, ic, ph, pr, am] = await Promise.all([
       fetch("/api/admin/bookings").then((r) => r.json()),
       fetch("/api/admin/settings").then((r) => r.json()),
       fetch("/api/admin/blocked").then((r) => r.json()),
       fetch("/api/admin/ical").then((r) => r.json()),
       fetch("/api/admin/photos").then((r) => r.json()),
       fetch("/api/admin/pricing").then((r) => r.json()),
+      fetch("/api/admin/amenities").then((r) => r.json()),
     ]);
     setBookings(b.bookings ?? []);
     setSettings(s.settings ?? null);
@@ -121,6 +129,8 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     setPhotos(ph.photos ?? []);
     setSeasonalRates(pr.seasonalRates ?? []);
     setGuestRates(pr.guestRates ?? []);
+    setDateRates(pr.dateRates ?? []);
+    setAmenities(am.amenities ?? []);
   }
 
   useEffect(() => {
@@ -185,6 +195,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               ["sync", "Booking.com / iCal"],
               ["fotos", "Fotos"],
               ["precios", "Precios"],
+              ["detalles", "Detalles del apartamento"],
               ["ajustes", "Contenido y ajustes"],
             ] as [Tab, string][]
           ).map(([id, label]) => (
@@ -236,9 +247,13 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             settings={settings}
             seasonalRates={seasonalRates}
             guestRates={guestRates}
+            dateRates={dateRates}
             onChanged={loadAll}
             onNotice={flash}
           />
+        )}
+        {tab === "detalles" && (
+          <DetallesTab amenities={amenities} onChanged={loadAll} onNotice={flash} />
         )}
         {tab === "ajustes" && (
           <SettingsTab settings={settings} onChanged={loadAll} onNotice={flash} />
@@ -906,8 +921,15 @@ function PhotosTab({
       formData.append("section", section);
       formData.append("alt", alt);
       const res = await fetch("/api/admin/photos", { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al subir la foto.");
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(
+          data?.error ||
+            (res.status === 413
+              ? "La foto pesa demasiado para subirla así, prueba con una más ligera (máximo 4 MB)."
+              : `Error al subir la foto (código ${res.status}).`)
+        );
+      }
       setFile(null);
       setAlt("");
       onNotice("Foto subida.");
@@ -958,10 +980,14 @@ function PhotosTab({
           <input
             type="file"
             required
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/*"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="rounded-lg border border-stone-200 px-3 py-2 text-sm"
           />
+          <span className="text-xs text-stone-500">
+            Si la foto viene de un iPhone y da error, mira el mensaje: puede
+            que esté en formato HEIC y haya que convertirla a JPG primero.
+          </span>
         </label>
         <label className="grid gap-1 text-sm text-stone-700">
           Descripción (opcional)
@@ -1050,12 +1076,14 @@ function PricingTab({
   settings,
   seasonalRates,
   guestRates,
+  dateRates,
   onChanged,
   onNotice,
 }: {
   settings: Settings | null;
   seasonalRates: SeasonalRate[] | null;
   guestRates: GuestRate[] | null;
+  dateRates: DateRate[] | null;
   onChanged: () => void;
   onNotice: (msg: string) => void;
 }) {
@@ -1094,7 +1122,7 @@ function PricingTab({
     }
   }, [guestRates, settings]);
 
-  if (!settings || !seasonalRates || !guestRates) {
+  if (!settings || !seasonalRates || !guestRates || !dateRates) {
     return <p className="text-stone-500">Cargando precios…</p>;
   }
 
@@ -1141,7 +1169,8 @@ function PricingTab({
   );
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-3xl gap-8">
+    <div className="grid max-w-3xl gap-8">
+    <form onSubmit={handleSubmit} className="grid gap-8">
       <div className="rounded-xl border border-stone-200 bg-white p-6">
         <p className="font-display text-lg text-stone-900">Precio base</p>
         <p className="mt-1 text-xs text-stone-500">
@@ -1245,5 +1274,352 @@ function PricingTab({
         {submitting ? "Guardando…" : "Guardar precios"}
       </button>
     </form>
+
+      <DateRatesEditor
+        dateRates={dateRates}
+        fallbackPrice={pricePerNight}
+        onChanged={onChanged}
+        onNotice={onNotice}
+      />
+    </div>
+  );
+}
+
+function DateRatesEditor({
+  dateRates,
+  fallbackPrice,
+  onChanged,
+  onNotice,
+}: {
+  dateRates: DateRate[];
+  fallbackPrice: number;
+  onChanged: () => void;
+  onNotice: (msg: string) => void;
+}) {
+  const [selected, setSelected] = useState<Date | undefined>();
+  const [price, setPrice] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const rateByIso = new Map(dateRates.map((r) => [r.date, r.pricePerNight]));
+
+  function isoOf(d: Date) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+      d.getDate()
+    ).padStart(2, "0")}`;
+  }
+
+  function handleSelectDay(day: Date | undefined) {
+    setSelected(day);
+    setError(null);
+    setPrice(day && rateByIso.has(isoOf(day)) ? String(rateByIso.get(isoOf(day))) : "");
+  }
+
+  async function handleSave() {
+    if (!selected || price === "") return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/pricing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: isoOf(selected), pricePerNight: Number(price) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al guardar el precio.");
+      onNotice("Precio del día guardado.");
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleRemove(dateIso: string) {
+    const res = await fetch("/api/admin/pricing", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: dateIso }),
+    });
+    if (res.ok) {
+      onNotice("Precio especial eliminado.");
+      if (selected && isoOf(selected) === dateIso) {
+        setSelected(undefined);
+        setPrice("");
+      }
+      onChanged();
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white p-6">
+      <p className="font-display text-lg text-stone-900">Precios por día concreto</p>
+      <p className="mt-1 text-xs text-stone-500">
+        Para fechas puntuales (un puente, una feria, Nochevieja…) que quieras
+        cobrar distinto al resto del mes. Este precio manda sobre el precio de
+        temporada y el precio base.
+      </p>
+      <div className="mt-4 grid gap-6 sm:grid-cols-[auto_1fr]">
+        <div className="overflow-x-auto">
+          <DayPicker
+            mode="single"
+            locale={es}
+            selected={selected}
+            onSelect={handleSelectDay}
+            modifiers={{ priced: (date) => rateByIso.has(isoOf(date)) }}
+            modifiersClassNames={{ priced: "!bg-terracotta-500/15 !font-semibold" }}
+            className="!m-0"
+          />
+        </div>
+        <div>
+          {selected ? (
+            <div className="grid gap-3">
+              <p className="text-sm font-medium text-stone-800">
+                {selected.toLocaleDateString("es-ES", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+              <label className="grid gap-1 text-sm text-stone-700">
+                Precio esa noche (€)
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder={`${fallbackPrice}`}
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="w-40 rounded-lg border border-stone-200 px-3 py-2"
+                />
+              </label>
+              {error && <p className="text-sm text-terracotta-600">{error}</p>}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={submitting || price === ""}
+                  className="rounded-full bg-stone-900 px-4 py-2 text-xs font-semibold text-white hover:bg-stone-800 disabled:opacity-60"
+                >
+                  {submitting ? "Guardando…" : "Guardar precio"}
+                </button>
+                {rateByIso.has(isoOf(selected)) && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(isoOf(selected))}
+                    className="rounded-full px-4 py-2 text-xs font-semibold text-terracotta-600 hover:bg-terracotta-500/10"
+                  >
+                    Quitar precio especial
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-stone-500">
+              Elige un día en el calendario para ponerle un precio especial.
+            </p>
+          )}
+
+          {dateRates.length > 0 && (
+            <div className="mt-6 grid gap-1.5 border-t border-stone-200 pt-4 text-sm">
+              <p className="text-xs font-semibold tracking-wide text-stone-500 uppercase">
+                Días con precio especial
+              </p>
+              {dateRates
+                .slice()
+                .sort((a, b) => a.date.localeCompare(b.date))
+                .map((r) => (
+                  <div key={r.date} className="flex items-center justify-between">
+                    <span className="text-stone-700">
+                      {new Date(`${r.date}T00:00:00`).toLocaleDateString("es-ES", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="font-medium text-stone-900">{r.pricePerNight} €</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(r.date)}
+                        className="text-xs text-terracotta-600 hover:underline"
+                      >
+                        Quitar
+                      </button>
+                    </span>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DetallesTab({
+  amenities,
+  onChanged,
+  onNotice,
+}: {
+  amenities: Amenity[] | null;
+  onChanged: () => void;
+  onNotice: (msg: string) => void;
+}) {
+  const [newLabel, setNewLabel] = useState("");
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!amenities) return <p className="text-stone-500">Cargando detalles…</p>;
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newLabel.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/amenities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label: newLabel.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al añadir.");
+      setNewLabel("");
+      onNotice("Detalle añadido.");
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleSaveEdit(id: string) {
+    const label = drafts[id]?.trim();
+    if (!label) return;
+    const res = await fetch("/api/admin/amenities", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, label }),
+    });
+    if (res.ok) {
+      onNotice("Detalle actualizado.");
+      onChanged();
+    }
+  }
+
+  async function handleDelete(id: string) {
+    const res = await fetch("/api/admin/amenities", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      onNotice("Detalle eliminado.");
+      onChanged();
+    }
+  }
+
+  async function handleMove(id: string, direction: -1 | 1) {
+    const index = amenities!.findIndex((a) => a.id === id);
+    const target = amenities![index + direction];
+    if (!target) return;
+    const current = amenities![index];
+    await Promise.all([
+      fetch("/api/admin/amenities", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: current.id, order: target.order }),
+      }),
+      fetch("/api/admin/amenities", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: target.id, order: current.order }),
+      }),
+    ]);
+    onChanged();
+  }
+
+  return (
+    <div className="grid max-w-2xl gap-6">
+      <div className="rounded-xl border border-stone-200 bg-white p-6">
+        <p className="font-display text-lg text-stone-900">
+          Qué tiene el apartamento
+        </p>
+        <p className="mt-1 text-xs text-stone-500">
+          Estas líneas aparecen en la portada, junto a la descripción del
+          apartamento (camas, baños, balcón, comodidades…). Si no añades
+          ninguna, se muestra una lista por defecto.
+        </p>
+
+        <form onSubmit={handleAdd} className="mt-4 flex gap-2">
+          <input
+            value={newLabel}
+            onChange={(e) => setNewLabel(e.target.value)}
+            placeholder="Ej: Balcón con vistas a la carretera general"
+            className="flex-1 rounded-lg border border-stone-200 px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={submitting || !newLabel.trim()}
+            className="shrink-0 rounded-full bg-terracotta-500 px-4 py-2 text-sm font-semibold text-white hover:bg-terracotta-600 disabled:opacity-60"
+          >
+            Añadir
+          </button>
+        </form>
+        {error && <p className="mt-2 text-sm text-terracotta-600">{error}</p>}
+
+        <div className="mt-5 grid gap-2">
+          {amenities.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-stone-300 p-4 text-center text-sm text-stone-500">
+              Todavía no has añadido ningún detalle propio; la web muestra la
+              lista por defecto.
+            </p>
+          ) : (
+            amenities.map((a, i) => (
+              <div
+                key={a.id}
+                className="flex items-center gap-2 rounded-lg border border-stone-200 p-2.5"
+              >
+                <div className="flex flex-col">
+                  <button
+                    type="button"
+                    disabled={i === 0}
+                    onClick={() => handleMove(a.id, -1)}
+                    className="px-1 text-xs text-stone-400 hover:text-stone-700 disabled:opacity-30"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    disabled={i === amenities.length - 1}
+                    onClick={() => handleMove(a.id, 1)}
+                    className="px-1 text-xs text-stone-400 hover:text-stone-700 disabled:opacity-30"
+                  >
+                    ▼
+                  </button>
+                </div>
+                <input
+                  value={drafts[a.id] ?? a.label}
+                  onChange={(e) => setDrafts((d) => ({ ...d, [a.id]: e.target.value }))}
+                  onBlur={() => drafts[a.id] !== undefined && handleSaveEdit(a.id)}
+                  className="flex-1 rounded-lg border border-stone-200 px-3 py-1.5 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleDelete(a.id)}
+                  className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-terracotta-600 hover:bg-terracotta-500/10"
+                >
+                  Eliminar
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

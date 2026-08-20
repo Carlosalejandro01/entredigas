@@ -37,6 +37,10 @@ function nightsBetween(a: Date, b: Date) {
   return Math.round((toDateOnly(b).getTime() - toDateOnly(a).getTime()) / 86400000);
 }
 
+function isoKey(d: Date) {
+  return toDateOnly(d).toISOString().slice(0, 10);
+}
+
 function formatMoney(amount: number, currency: string) {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
@@ -73,6 +77,7 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
     checkOut: string;
     total: number;
   } | null>(null);
+  const [selectionNotice, setSelectionNotice] = useState<string | null>(null);
 
   async function loadAvailability() {
     try {
@@ -90,16 +95,58 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
     loadAvailability();
   }, []);
 
-  const disabledMatchers = useMemo(() => {
-    const today = toDateOnly(new Date());
-    const past = { before: today };
-    if (!availability) return [past];
-    const occupied = availability.occupiedRanges.map((r) => ({
-      from: new Date(r.start),
-      to: new Date(new Date(r.end).getTime() - 86400000),
-    }));
-    return [past, ...occupied];
+  // Noches realmente ocupadas (no el propio día de salida de una reserva,
+  // que sí se puede usar como entrada de la siguiente).
+  const occupiedNightKeys = useMemo(() => {
+    const set = new Set<string>();
+    if (!availability) return set;
+    for (const r of availability.occupiedRanges) {
+      let cursor = toDateOnly(new Date(r.start));
+      const end = toDateOnly(new Date(r.end));
+      while (cursor.getTime() < end.getTime()) {
+        set.add(isoKey(cursor));
+        cursor = new Date(cursor.getTime() + 86400000);
+      }
+    }
+    return set;
   }, [availability]);
+
+  const today = toDateOnly(new Date());
+
+  function isSpanFree(from: Date, to: Date) {
+    let cursor = toDateOnly(from);
+    const end = toDateOnly(to);
+    while (cursor.getTime() < end.getTime()) {
+      if (occupiedNightKeys.has(isoKey(cursor))) return false;
+      cursor = new Date(cursor.getTime() + 86400000);
+    }
+    return true;
+  }
+
+  function handleRangeSelect(newRange: DateRange | undefined) {
+    setSelectionNotice(null);
+    if (!newRange?.from) {
+      setRange(undefined);
+      return;
+    }
+    if (!newRange.to) {
+      if (occupiedNightKeys.has(isoKey(newRange.from))) {
+        setSelectionNotice("Esa noche ya está reservada.");
+        return;
+      }
+      setRange({ from: newRange.from, to: undefined });
+      return;
+    }
+    // El día de salida no consume esa noche: solo hace falta que las
+    // noches entre la entrada y la salida (sin incluir la salida) estén
+    // libres, aunque la salida coincida con la entrada de otra reserva.
+    if (!isSpanFree(newRange.from, newRange.to)) {
+      setSelectionNotice("Hay una reserva entre esas fechas; elige otra salida.");
+      setRange({ from: newRange.from, to: undefined });
+      return;
+    }
+    setRange(newRange);
+  }
 
   const nights =
     range?.from && range?.to ? nightsBetween(range.from, range.to) : 0;
@@ -209,9 +256,10 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
                     locale={es}
                     numberOfMonths={2}
                     selected={range}
-                    onSelect={setRange}
-                    disabled={disabledMatchers}
-                    excludeDisabled
+                    onSelect={handleRangeSelect}
+                    disabled={{ before: today }}
+                    modifiers={{ occupied: (date) => occupiedNightKeys.has(isoKey(date)) }}
+                    modifiersClassNames={{ occupied: "!bg-stone-100 !text-stone-400" }}
                     startMonth={new Date()}
                     className="!m-0"
                   />
@@ -221,6 +269,9 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
                   </div>
                 )}
               </div>
+            )}
+            {selectionNotice && (
+              <p className="mt-2 text-sm text-terracotta-600">{selectionNotice}</p>
             )}
 
             {step === "details" && (
