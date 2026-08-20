@@ -69,13 +69,15 @@ export default async function Home() {
     heroPhoto?.alt ||
     "Salón del apartamento Entre Vigas, con la viga de roble original a la vista";
 
-  const gallery =
-    galleryPhotos.length > 0
-      ? galleryPhotos.map((p) => ({ src: `/api/photos/${p.id}`, alt: p.alt || "Entre Vigas" }))
-      : fallbackGallery;
+  // Las fotos y los detalles subidos desde el panel se añaden a los que ya
+  // hay por defecto, no los sustituyen — así subir una foto nunca hace
+  // desaparecer el resto de la galería.
+  const gallery = [
+    ...fallbackGallery,
+    ...galleryPhotos.map((p) => ({ src: `/api/photos/${p.id}`, alt: p.alt || "Entre Vigas" })),
+  ];
 
-  const amenityLabels =
-    dbAmenities.length > 0 ? dbAmenities.map((a) => a.label) : DEFAULT_AMENITY_LABELS;
+  const amenityLabels = [...DEFAULT_AMENITY_LABELS, ...dbAmenities.map((a) => a.label)];
 
   return (
     <>

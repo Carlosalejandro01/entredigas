@@ -895,6 +895,34 @@ function SettingsTab({
   );
 }
 
+// Las fotos de móvil suelen pesar 4-8 MB, muy por encima de lo que admite
+// el servidor. Las reducimos en el propio navegador antes de subirlas.
+async function compressImageFile(file: File, maxDim = 2200, quality = 0.85): Promise<Blob> {
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    bitmap = await createImageBitmap(file);
+  }
+  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+  const width = Math.round(bitmap.width * scale);
+  const height = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("No se ha podido procesar la imagen.");
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("No se ha podido comprimir la imagen."))),
+      "image/jpeg",
+      quality
+    );
+  });
+}
+
 function PhotosTab({
   photos,
   onChanged,
@@ -916,8 +944,17 @@ function PhotosTab({
     setSubmitting(true);
     setError(null);
     try {
+      let uploadBlob: Blob = file;
+      let uploadName = file.name;
+      try {
+        uploadBlob = await compressImageFile(file);
+        uploadName = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+      } catch {
+        // El navegador no ha podido procesarla (p. ej. HEIC en Chrome/Firefox):
+        // se sube el archivo original y que el servidor dé el mensaje de error.
+      }
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", uploadBlob, uploadName);
       formData.append("section", section);
       formData.append("alt", alt);
       const res = await fetch("/api/admin/photos", { method: "POST", body: formData });
@@ -976,7 +1013,7 @@ function PhotosTab({
           </select>
         </label>
         <label className="grid gap-1 text-sm text-stone-700">
-          Archivo (JPG, PNG o WEBP, máx. 4 MB)
+          Archivo (foto del móvil o del ordenador)
           <input
             type="file"
             required
@@ -985,8 +1022,9 @@ function PhotosTab({
             className="rounded-lg border border-stone-200 px-3 py-2 text-sm"
           />
           <span className="text-xs text-stone-500">
-            Si la foto viene de un iPhone y da error, mira el mensaje: puede
-            que esté en formato HEIC y haya que convertirla a JPG primero.
+            Se reduce automáticamente antes de subirla, así que no importa si
+            pesa mucho. Si aun así da error, puede que esté en formato HEIC
+            (típico de iPhone): conviértela a JPG primero.
           </span>
         </label>
         <label className="grid gap-1 text-sm text-stone-700">
@@ -1029,6 +1067,10 @@ function PhotosTab({
 
         <div>
           <p className="font-display text-lg text-stone-900">Galería</p>
+          <p className="text-xs text-stone-500">
+            Lo que subas aquí se añade a las fotos que ya tiene la web, no las
+            sustituye.
+          </p>
           {galeriaPhotos.length === 0 ? (
             <p className="mt-3 rounded-xl border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500">
               Todavía no has subido fotos a la galería.
@@ -1705,8 +1747,8 @@ function DetallesTab({
         </p>
         <p className="mt-1 text-xs text-stone-500">
           Estas líneas aparecen en la portada, junto a la descripción del
-          apartamento (camas, baños, balcón, comodidades…). Si no añades
-          ninguna, se muestra una lista por defecto.
+          apartamento (camas, baños, balcón, comodidades…). Lo que añadas
+          aquí se suma a la lista por defecto que ya tiene la web.
         </p>
 
         <form onSubmit={handleAdd} className="mt-4 flex gap-2">
