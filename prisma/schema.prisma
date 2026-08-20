@@ -66,6 +66,8 @@ model Settings {
   heroTitle       String   @default("")
   heroSubtitle    String   @default("")
   aboutText       String   @default("")
+  googleMapsUrl   String   @default("")
+  googleReviewUrl String   @default("")
   updatedAt       DateTime @updatedAt
 }
 

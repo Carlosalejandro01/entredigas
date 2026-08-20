@@ -11,6 +11,7 @@ import {
   IconKitchen,
   IconMapPin,
   IconParking,
+  IconStar,
   IconUsers,
   IconWasher,
   IconWifi,
@@ -21,6 +22,9 @@ const DEFAULT_HERO_SUBTITLE =
   'Apartamento rural íntegramente restaurado en una casona montañesa del siglo XVIII, en el corazón del casco histórico de "el pueblo de las tres mentiras". Piedra, madera noble y todas las comodidades para tu escapada a la Costa Verde.';
 const DEFAULT_ABOUT_TEXT =
   "Entre Vigas ocupa la planta de una antigua casona cántabra, con muros de sillería, suelos de madera maciza y las vigas originales que le dan nombre. Un espacio pensado para familias y grupos de amigos, a un minuto a pie de la Colegiata de Santa Juliana y de las calles empedradas del casco histórico.\n\nIdeal como base para visitar las Cuevas de Altamira, el Museo de Altamira, la costa de Comillas y Santander, sin renunciar a volver cada noche a un lugar con carácter.";
+const FALLBACK_MAPS_URL =
+  "https://www.google.com/maps/search/?api=1&query=" +
+  encodeURIComponent("Entre Vigas, Av. Antonio Sandi 1, Santillana del Mar, Cantabria");
 
 const fallbackGallery = [
   { src: "/gallery/salon.jpg", alt: "Salón comedor con vigas de madera a la vista" },
@@ -48,6 +52,7 @@ export default async function Home() {
     }),
   ]);
 
+  const mapsUrl = settings.googleMapsUrl || FALLBACK_MAPS_URL;
   const heroTitle = settings.heroTitle || DEFAULT_HERO_TITLE;
   const heroSubtitle = settings.heroSubtitle || DEFAULT_HERO_SUBTITLE;
   const aboutText = settings.aboutText || DEFAULT_ABOUT_TEXT;
@@ -218,21 +223,48 @@ export default async function Home() {
                 Santa Juliana están a un paseo desde la puerta del
                 apartamento.
               </p>
-              <p className="mt-5 text-sm font-medium text-stone-500">
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 hover:text-terracotta-600"
+              >
+                <IconMapPin className="h-4 w-4 shrink-0" />
                 Av. Antonio Sandi, 1 · Santillana del Mar, Cantabria
-              </p>
+              </a>
               <ul className="mt-6 space-y-3 text-sm text-stone-700">
                 <li>🚗 5 min de las Cuevas de Altamira</li>
                 <li>🚗 25 min de Santander y su aeropuerto</li>
                 <li>🚗 30 min de Comillas y San Vicente de la Barquera</li>
                 <li>🚶 2 min a pie de la Colegiata de Santa Juliana</li>
               </ul>
-              <Link
-                href="/guia"
-                className="mt-8 inline-flex items-center gap-2 rounded-full border border-stone-300 px-6 py-3 text-sm font-semibold text-stone-800 transition hover:bg-white"
-              >
-                Ver la guía completa de la zona →
-              </Link>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-800"
+                >
+                  Ver en Google Maps →
+                </a>
+                <Link
+                  href="/guia"
+                  className="inline-flex items-center gap-2 rounded-full border border-stone-300 px-6 py-3 text-sm font-semibold text-stone-800 transition hover:bg-white"
+                >
+                  Ver la guía completa de la zona →
+                </Link>
+              </div>
+              {settings.googleReviewUrl && (
+                <a
+                  href={settings.googleReviewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-terracotta-600 hover:text-terracotta-700"
+                >
+                  <IconStar className="h-4 w-4" />
+                  ¿Ya te has alojado con nosotros? Déjanos tu opinión en Google →
+                </a>
+              )}
             </div>
             <div className="overflow-hidden rounded-2xl border border-stone-200 shadow-lg">
               <iframe

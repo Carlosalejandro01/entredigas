@@ -24,6 +24,8 @@ const schema = z.object({
   heroTitle: z.string().max(200),
   heroSubtitle: z.string().max(400),
   aboutText: z.string().max(4000),
+  googleMapsUrl: z.string().url().max(500).or(z.literal("")),
+  googleReviewUrl: z.string().url().max(500).or(z.literal("")),
 });
 
 export async function PUT(request: Request) {

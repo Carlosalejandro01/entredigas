@@ -156,3 +156,11 @@ export function IconInstagram(props: SVGProps<SVGSVGElement>) {
     </Icon>
   );
 }
+
+export function IconStar(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.3 6.6-5.9-3.4-5.9 3.4 1.3-6.6-4.9-4.6 6.6-.7z" />
+    </Icon>
+  );
+}

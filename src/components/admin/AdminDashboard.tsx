@@ -29,6 +29,8 @@ type Settings = {
   heroTitle: string;
   heroSubtitle: string;
   aboutText: string;
+  googleMapsUrl: string;
+  googleReviewUrl: string;
 };
 
 type Photo = {
@@ -802,6 +804,34 @@ function SettingsTab({
             />
           </label>
         </div>
+        <label className="grid gap-1 text-sm text-stone-700">
+          Enlace a la ficha de Google Maps
+          <input
+            type="url"
+            value={form.googleMapsUrl}
+            onChange={(e) => setForm({ ...form, googleMapsUrl: e.target.value })}
+            placeholder="https://maps.app.goo.gl/..."
+            className="rounded-lg border border-stone-200 px-3 py-2"
+          />
+          <span className="text-xs text-stone-500">
+            Se usa en el botón «Ver en Google Maps». Si lo dejas en blanco, se
+            genera una búsqueda automática con la dirección.
+          </span>
+        </label>
+        <label className="grid gap-1 text-sm text-stone-700">
+          Enlace para dejar una reseña en Google
+          <input
+            type="url"
+            value={form.googleReviewUrl}
+            onChange={(e) => setForm({ ...form, googleReviewUrl: e.target.value })}
+            placeholder="https://maps.app.goo.gl/... o el enlace de «Pedir reseñas»"
+            className="rounded-lg border border-stone-200 px-3 py-2"
+          />
+          <span className="text-xs text-stone-500">
+            Si lo dejas en blanco, no se muestra el botón de «Déjanos tu
+            opinión» en la web.
+          </span>
+        </label>
       </div>
 
       <div className="grid gap-4 border-t border-stone-200 pt-6">
