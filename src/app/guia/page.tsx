@@ -44,6 +44,10 @@ export const metadata: Metadata = {
   },
 };
 
+// El pie de página incluido en esta ruta lee ajustes editables desde el
+// panel (contacto, enlaces, licencia): hay que renderizar en cada visita.
+export const dynamic = "force-dynamic";
+
 const subnav = [
   { href: "#que-ver", label: "Qué ver" },
   { href: "#donde-comer", label: "Dónde comer" },

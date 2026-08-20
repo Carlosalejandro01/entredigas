@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
+// Muestra datos de ajustes editables desde el panel (contacto, licencia):
+// hay que renderizar en cada visita, no cachear como página estática.
+export const dynamic = "force-dynamic";
+
 export default async function PrivacidadPage() {
   const settings = await getSettings();
 

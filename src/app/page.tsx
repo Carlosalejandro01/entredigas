@@ -7,6 +7,12 @@ import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/booking";
 import { IconCheck, IconMapPin, IconStar, IconUsers } from "@/components/icons";
 
+// La portada muestra ajustes, fotos y detalles editables desde el panel de
+// administración: hay que renderizarla en cada visita, nunca cachearla como
+// página estática, o los cambios guardados no se verían hasta el próximo
+// despliegue de código.
+export const dynamic = "force-dynamic";
+
 const DEFAULT_HERO_TITLE = "Céntrico. Cómodo. Para hasta 6.";
 const DEFAULT_HERO_SUBTITLE =
   "Apartamento en el centro de Santillana del Mar, con dos habitaciones, dos baños y todo lo necesario para estar bien. Buena base para recorrer Cantabria sin complicarte.";
