@@ -3,31 +3,27 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookingWidget from "@/components/BookingWidget";
+import { prisma } from "@/lib/prisma";
+import { getSettings } from "@/lib/booking";
 import {
   IconBed,
   IconFireplace,
   IconKitchen,
   IconMapPin,
+  IconParking,
   IconUsers,
   IconWasher,
   IconWifi,
 } from "@/components/icons";
 
-const amenities = [
-  { icon: IconBed, label: "2 dormitorios" },
-  { icon: IconUsers, label: "Hasta 4 huéspedes" },
-  { icon: IconWifi, label: "Wifi de alta velocidad" },
-  { icon: IconKitchen, label: "Cocina totalmente equipada" },
-  { icon: IconWasher, label: "Lavadora" },
-  { icon: IconFireplace, label: "Calefacción en toda la casa" },
-];
+const DEFAULT_HERO_TITLE = "Dormir entre vigas, a dos pasos de la Colegiata";
+const DEFAULT_HERO_SUBTITLE =
+  'Apartamento rural íntegramente restaurado en una casona montañesa del siglo XVIII, en el corazón del casco histórico de "el pueblo de las tres mentiras". Piedra, madera noble y todas las comodidades para tu escapada a la Costa Verde.';
+const DEFAULT_ABOUT_TEXT =
+  "Entre Vigas ocupa la planta de una antigua casona cántabra, con muros de sillería, suelos de madera maciza y las vigas originales que le dan nombre. Un espacio pensado para familias y grupos de amigos, a un minuto a pie de la Colegiata de Santa Juliana y de las calles empedradas del casco histórico.\n\nIdeal como base para visitar las Cuevas de Altamira, el Museo de Altamira, la costa de Comillas y Santander, sin renunciar a volver cada noche a un lugar con carácter.";
 
-const gallery = [
-  {
-    src: "/gallery/salon.jpg",
-    alt: "Salón comedor con vigas de madera a la vista",
-    wide: true,
-  },
+const fallbackGallery = [
+  { src: "/gallery/salon.jpg", alt: "Salón comedor con vigas de madera a la vista" },
   { src: "/gallery/fachada.jpg", alt: "Fachada de la casona en el casco histórico" },
   { src: "/gallery/dormitorio-vigas.jpg", alt: "Segundo dormitorio, bajo las vigas originales" },
   { src: "/gallery/dormitorio-principal.jpg", alt: "Dormitorio principal" },
@@ -37,7 +33,44 @@ const gallery = [
   { src: "/gallery/placa.jpg", alt: "Placa oficial de vivienda vacacional" },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const [settings, heroPhoto, galleryPhotos] = await Promise.all([
+    getSettings(),
+    prisma.photo.findFirst({
+      where: { section: "hero" },
+      orderBy: { order: "asc" },
+      select: { id: true, alt: true },
+    }),
+    prisma.photo.findMany({
+      where: { section: "galeria" },
+      orderBy: { order: "asc" },
+      select: { id: true, alt: true },
+    }),
+  ]);
+
+  const heroTitle = settings.heroTitle || DEFAULT_HERO_TITLE;
+  const heroSubtitle = settings.heroSubtitle || DEFAULT_HERO_SUBTITLE;
+  const aboutText = settings.aboutText || DEFAULT_ABOUT_TEXT;
+  const heroImageSrc = heroPhoto ? `/api/photos/${heroPhoto.id}` : "/gallery/hero.jpg";
+  const heroImageAlt =
+    heroPhoto?.alt ||
+    "Salón del apartamento Entre Vigas, con la viga de roble original a la vista";
+
+  const gallery =
+    galleryPhotos.length > 0
+      ? galleryPhotos.map((p) => ({ src: `/api/photos/${p.id}`, alt: p.alt || "Entre Vigas" }))
+      : fallbackGallery;
+
+  const amenities = [
+    { icon: IconBed, label: "2 dormitorios" },
+    { icon: IconUsers, label: `Hasta ${settings.maxGuests} huéspedes` },
+    { icon: IconWifi, label: "Wifi de alta velocidad" },
+    { icon: IconKitchen, label: "Cocina totalmente equipada" },
+    { icon: IconWasher, label: "Lavadora" },
+    { icon: IconFireplace, label: "Calefacción en toda la casa" },
+    { icon: IconParking, label: "Parking propio" },
+  ];
+
   return (
     <>
       <Header />
@@ -51,15 +84,10 @@ export default function Home() {
                 Santillana del Mar, Cantabria
               </p>
               <h1 className="mt-6 font-display text-4xl leading-[1.1] text-stone-900 sm:text-5xl lg:text-6xl">
-                Dormir <span className="italic text-terracotta-600">entre vigas</span>,
-                a dos pasos de la Colegiata
+                {heroTitle}
               </h1>
-              <p className="mt-6 max-w-xl text-lg text-stone-700">
-                Apartamento rural íntegramente restaurado en una casona
-                montañesa del siglo XVIII, en el corazón del casco histórico
-                de &ldquo;el pueblo de las tres mentiras&rdquo;. Piedra, madera
-                noble y todas las comodidades para tu escapada a la Costa
-                Verde.
+              <p className="mt-6 max-w-xl text-lg whitespace-pre-line text-stone-700">
+                {heroSubtitle}
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 <a
@@ -79,10 +107,11 @@ export default function Home() {
 
             <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-stone-200 shadow-2xl">
               <Image
-                src="/gallery/hero.jpg"
-                alt="Salón del apartamento Entre Vigas, con la viga de roble original a la vista"
+                src={heroImageSrc}
+                alt={heroImageAlt}
                 fill
                 priority
+                unoptimized={heroImageSrc.startsWith("/api/")}
                 sizes="(min-width: 1024px) 40vw, 90vw"
                 className="object-cover"
               />
@@ -100,19 +129,11 @@ export default function Home() {
               <h2 className="mt-3 font-display text-3xl text-stone-900 sm:text-4xl">
                 Autenticidad montañesa con todas las comodidades
               </h2>
-              <p className="mt-5 text-stone-700">
-                Entre Vigas ocupa la planta de una antigua casona
-                cántabra, con muros de sillería, suelos de madera maciza y
-                las vigas originales que le dan nombre. Un espacio de 75 m²
-                pensado para dos parejas o una familia, a un minuto a pie de
-                la Colegiata de Santa Juliana y de las calles empedradas
-                del casco histórico.
-              </p>
-              <p className="mt-4 text-stone-700">
-                Ideal como base para visitar las Cuevas de Altamira, el
-                Museo de Altamira, la costa de Comillas y Santander, sin
-                renunciar a volver cada noche a un lugar con carácter.
-              </p>
+              {aboutText.split("\n\n").map((paragraph, i) => (
+                <p key={i} className="mt-4 whitespace-pre-line text-stone-700 first:mt-5">
+                  {paragraph}
+                </p>
+              ))}
             </div>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
               {amenities.map(({ icon: Icon, label }) => (
@@ -138,18 +159,19 @@ export default function Home() {
               Cada rincón cuenta una historia
             </h2>
             <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {gallery.map((photo) => (
+              {gallery.map((photo, i) => (
                 <div
                   key={photo.src}
                   className={`group relative overflow-hidden rounded-2xl border border-stone-200 ${
-                    photo.wide ? "col-span-2 aspect-[16/10] sm:col-span-2" : "aspect-square"
+                    i === 0 ? "col-span-2 aspect-[16/10] sm:col-span-2" : "aspect-square"
                   }`}
                 >
                   <Image
                     src={photo.src}
                     alt={photo.alt}
                     fill
-                    sizes={photo.wide ? "(min-width: 640px) 66vw, 100vw" : "(min-width: 640px) 33vw, 50vw"}
+                    unoptimized={photo.src.startsWith("/api/")}
+                    sizes={i === 0 ? "(min-width: 640px) 66vw, 100vw" : "(min-width: 640px) 33vw, 50vw"}
                     className="object-cover transition duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
@@ -175,7 +197,7 @@ export default function Home() {
             nunca coincidan dos huéspedes.
           </p>
           <div className="mt-10">
-            <BookingWidget />
+            <BookingWidget maxGuests={settings.maxGuests} />
           </div>
         </section>
 

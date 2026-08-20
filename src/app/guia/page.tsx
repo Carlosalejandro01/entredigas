@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Badge, PoiCard, RestaurantCard, SectionKicker } from "@/components/guia/GuideBits";
+import { ActividadCard, Badge, PoiCard, RestaurantCard, SectionKicker } from "@/components/guia/GuideBits";
 import {
+  actividadesDestacadas,
+  actividadesOtras,
+  actividadesPorDistancia,
   antesDeSalir,
   bloque1,
   bloque2,
   bloque3,
   bloque4,
   comerSinEquivocarse,
+  consejoActividades,
   playas,
   restaurantesDestacados,
   restaurantesPorCategoria,
@@ -26,6 +30,7 @@ const subnav = [
   { href: "#que-ver", label: "Qué ver" },
   { href: "#donde-comer", label: "Dónde comer" },
   { href: "#playas", label: "Playas" },
+  { href: "#actividades", label: "Actividades" },
 ];
 
 export default function GuiaPage() {
@@ -311,6 +316,80 @@ export default function GuiaPage() {
               oleaje en la costa cántabra puede ser fuerte: prestad atención
               a las banderas de socorrismo.
             </p>
+          </div>
+        </section>
+
+        {/* ============================= ACTIVIDADES ============================= */}
+        <section id="actividades" className="scroll-mt-32 border-t border-stone-200 bg-stone-50 py-16">
+          <div className="mx-auto max-w-6xl px-5">
+            <SectionKicker>Actividades y planes al aire libre</SectionKicker>
+            <h2 className="mt-3 font-display text-3xl text-stone-900 sm:text-4xl">
+              Surf, pádel, CrossFit, caballos y motos de agua
+            </h2>
+            <p className="mt-4 max-w-2xl text-stone-700">
+              Cantabria es una tierra estupenda para el ocio activo: desde las
+              olas del Cantábrico hasta los ríos de los Picos de Europa,
+              pasando por rutas a caballo, pádel, CrossFit o motos de agua en
+              la bahía. Esta es nuestra selección personal, con toda la
+              información verificada.
+            </p>
+
+            <h3 className="mt-12 font-display text-2xl text-stone-900">
+              Recomendadas, cerca del apartamento
+            </h3>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {actividadesDestacadas.map((a) => (
+                <ActividadCard key={a.nombre} a={a} />
+              ))}
+            </div>
+
+            <h3 className="mt-12 font-display text-2xl text-stone-900">
+              Todas, ordenadas por distancia
+            </h3>
+            <div className="mt-5 overflow-x-auto rounded-2xl border border-stone-200 bg-white/70">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase">
+                    <th className="px-4 py-3 font-semibold">Km</th>
+                    <th className="px-4 py-3 font-semibold">Actividad</th>
+                    <th className="px-4 py-3 font-semibold">Localidad</th>
+                    <th className="px-4 py-3 font-semibold">Tipo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {actividadesPorDistancia.map((a) => (
+                    <tr key={a.nombre} className="border-b border-stone-100 last:border-0">
+                      <td className="px-4 py-2.5 whitespace-nowrap text-stone-500">
+                        {a.km === "0 km" ? "a pie" : a.km}
+                      </td>
+                      <td className="px-4 py-2.5 font-medium text-stone-900">
+                        {a.nombre}
+                        {a.recomendado && <span className="ml-1.5 text-xs text-terracotta-600">★</span>}
+                      </td>
+                      <td className="px-4 py-2.5 text-stone-600">{a.lugar}</td>
+                      <td className="px-4 py-2.5 text-stone-600">{a.tipo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="mt-12 font-display text-2xl text-stone-900">
+              Ríos, senderismo y montaña
+            </h3>
+            <div className="mt-5 grid gap-4 sm:grid-cols-3">
+              {actividadesOtras.map((o) => (
+                <div key={o.titulo} className="rounded-2xl border border-stone-200 bg-white/70 p-5">
+                  <p className="font-display text-base text-stone-900">{o.titulo}</p>
+                  <p className="mt-2 text-sm text-stone-700">{o.texto}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-10 rounded-2xl bg-stone-900 p-6 text-sm text-stone-300">
+              <p className="font-display text-base text-white">Cuándo hacer cada cosa</p>
+              <p className="mt-2">{consejoActividades}</p>
+            </div>
           </div>
         </section>
       </main>

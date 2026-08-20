@@ -9,7 +9,7 @@ const bookingSchema = z
     guestName: z.string().trim().min(2).max(120),
     email: z.string().trim().email(),
     phone: z.string().trim().min(6).max(30),
-    guests: z.coerce.number().int().min(1).max(12),
+    guests: z.coerce.number().int().min(1).max(20),
     checkIn: z.string(),
     checkOut: z.string(),
     message: z.string().trim().max(1000).optional(),
@@ -56,10 +56,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const quote = await computeQuote(checkIn, checkOut);
+  const quote = await computeQuote(checkIn, checkOut, guests);
   if (nights < quote.minNights) {
     return NextResponse.json(
       { error: `La estancia mínima es de ${quote.minNights} noches.` },
+      { status: 400 }
+    );
+  }
+  if (guests > quote.maxGuests) {
+    return NextResponse.json(
+      { error: `El apartamento admite un máximo de ${quote.maxGuests} huéspedes.` },
       { status: 400 }
     );
   }

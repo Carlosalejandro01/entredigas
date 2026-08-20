@@ -19,6 +19,11 @@ const schema = z.object({
   currency: z.string().min(1).max(6),
   contactEmail: z.string().email().or(z.literal("")),
   contactPhone: z.string().max(30),
+  baseGuests: z.coerce.number().int().min(1),
+  maxGuests: z.coerce.number().int().min(1),
+  heroTitle: z.string().max(200),
+  heroSubtitle: z.string().max(400),
+  aboutText: z.string().max(4000),
 });
 
 export async function PUT(request: Request) {

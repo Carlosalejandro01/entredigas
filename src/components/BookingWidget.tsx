@@ -14,6 +14,19 @@ type Availability = {
   currency: string;
 };
 
+type Quote = {
+  nights: number;
+  averagePricePerNight: number;
+  lodging: number;
+  surchargePercent: number;
+  cleaningFee: number;
+  currency: string;
+  minNights: number;
+  baseGuests: number;
+  maxGuests: number;
+  total: number;
+};
+
 type Step = "dates" | "details" | "success";
 
 function toDateOnly(d: Date) {
@@ -39,13 +52,15 @@ function formatDate(d: Date) {
   }).format(d);
 }
 
-export default function BookingWidget() {
+export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
   const [availability, setAvailability] = useState<Availability | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [range, setRange] = useState<DateRange | undefined>();
   const [step, setStep] = useState<Step>("dates");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const [form, setForm] = useState({
     guestName: "",
     email: "",
@@ -88,15 +103,39 @@ export default function BookingWidget() {
 
   const nights =
     range?.from && range?.to ? nightsBetween(range.from, range.to) : 0;
-  const minNights = availability?.minNights ?? 2;
-  const quote =
-    availability && nights > 0
-      ? {
-          lodging: nights * availability.pricePerNight,
-          cleaning: availability.cleaningFee,
-          total: nights * availability.pricePerNight + availability.cleaningFee,
-        }
-      : null;
+  const minNights = quote?.minNights ?? availability?.minNights ?? 2;
+
+  useEffect(() => {
+    if (!range?.from || !range?.to || nights <= 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clear stale quote when dates are incomplete
+      setQuote(null);
+      return;
+    }
+    let cancelled = false;
+    setQuoteLoading(true);
+    fetch("/api/quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        checkIn: toDateOnly(range.from).toISOString(),
+        checkOut: toDateOnly(range.to).toISOString(),
+        guests: form.guests,
+      }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => {
+        if (!cancelled) setQuote(data);
+      })
+      .catch(() => {
+        if (!cancelled) setQuote(null);
+      })
+      .finally(() => {
+        if (!cancelled) setQuoteLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [range?.from, range?.to, form.guests, nights]);
 
   const canContinue = Boolean(range?.from && range?.to && nights >= minNights);
 
@@ -205,12 +244,12 @@ export default function BookingWidget() {
                       required
                       type="number"
                       min={1}
-                      max={12}
+                      max={maxGuests}
                       value={form.guests}
                       onChange={(e) =>
                         setForm((f) => ({
                           ...f,
-                          guests: Number(e.target.value),
+                          guests: Math.min(maxGuests, Math.max(1, Number(e.target.value) || 1)),
                         }))
                       }
                       className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-stone-900 outline-none focus:border-terracotta-500"
@@ -307,22 +346,50 @@ export default function BookingWidget() {
               </p>
             )}
 
-            {quote && nights >= minNights && availability && (
+            {nights > 0 && (
+              <label className="mt-4 grid gap-1 border-t border-stone-200 pt-4 text-sm text-stone-700">
+                Nº de huéspedes
+                <input
+                  type="number"
+                  min={1}
+                  max={maxGuests}
+                  value={form.guests}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      guests: Math.min(
+                        maxGuests,
+                        Math.max(1, Number(e.target.value) || 1)
+                      ),
+                    }))
+                  }
+                  className="w-24 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-stone-900 outline-none focus:border-terracotta-500"
+                />
+                <span className="text-xs text-stone-500">Máximo {maxGuests} huéspedes.</span>
+              </label>
+            )}
+
+            {quoteLoading && nights >= minNights && (
+              <p className="mt-4 text-sm text-stone-500">Calculando precio…</p>
+            )}
+
+            {quote && !quoteLoading && nights >= minNights && (
               <div className="mt-4 grid gap-1.5 border-t border-stone-200 pt-4 text-sm text-stone-700">
                 <div className="flex justify-between">
                   <span>
-                    {formatMoney(availability.pricePerNight, availability.currency)}{" "}
+                    {formatMoney(quote.averagePricePerNight, quote.currency)}{" "}
                     × {nights} {nights === 1 ? "noche" : "noches"}
+                    {quote.surchargePercent > 0 && ` (+${quote.surchargePercent}% por ${form.guests} huéspedes)`}
                   </span>
-                  <span>{formatMoney(quote.lodging, availability.currency)}</span>
+                  <span>{formatMoney(quote.lodging, quote.currency)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Limpieza</span>
-                  <span>{formatMoney(quote.cleaning, availability.currency)}</span>
+                  <span>{formatMoney(quote.cleaningFee, quote.currency)}</span>
                 </div>
                 <div className="mt-2 flex justify-between border-t border-stone-200 pt-2 font-display text-base text-stone-900">
                   <span>Total</span>
-                  <span>{formatMoney(quote.total, availability.currency)}</span>
+                  <span>{formatMoney(quote.total, quote.currency)}</span>
                 </div>
               </div>
             )}

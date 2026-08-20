@@ -24,7 +24,28 @@ type Settings = {
   currency: string;
   contactEmail: string;
   contactPhone: string;
+  baseGuests: number;
+  maxGuests: number;
+  heroTitle: string;
+  heroSubtitle: string;
+  aboutText: string;
 };
+
+type Photo = {
+  id: string;
+  alt: string;
+  section: string;
+  order: number;
+  createdAt: string;
+};
+
+type SeasonalRate = { month: number; pricePerNight: number };
+type GuestRate = { guests: number; percent: number };
+
+const MONTH_NAMES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
 
 type BlockedRange = {
   id: string;
@@ -43,7 +64,7 @@ type ExternalCalendar = {
   lastSyncCount: number | null;
 };
 
-type Tab = "reservas" | "bloqueos" | "sync" | "ajustes";
+type Tab = "reservas" | "bloqueos" | "sync" | "fotos" | "precios" | "ajustes";
 
 function fmtDate(s: string) {
   return new Intl.DateTimeFormat("es-ES", {
@@ -76,20 +97,28 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [blocked, setBlocked] = useState<BlockedRange[] | null>(null);
   const [calendars, setCalendars] = useState<ExternalCalendar[] | null>(null);
   const [exportUrl, setExportUrl] = useState<string>("");
+  const [photos, setPhotos] = useState<Photo[] | null>(null);
+  const [seasonalRates, setSeasonalRates] = useState<SeasonalRate[] | null>(null);
+  const [guestRates, setGuestRates] = useState<GuestRate[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   async function loadAll() {
-    const [b, s, bl, ic] = await Promise.all([
+    const [b, s, bl, ic, ph, pr] = await Promise.all([
       fetch("/api/admin/bookings").then((r) => r.json()),
       fetch("/api/admin/settings").then((r) => r.json()),
       fetch("/api/admin/blocked").then((r) => r.json()),
       fetch("/api/admin/ical").then((r) => r.json()),
+      fetch("/api/admin/photos").then((r) => r.json()),
+      fetch("/api/admin/pricing").then((r) => r.json()),
     ]);
     setBookings(b.bookings ?? []);
     setSettings(s.settings ?? null);
     setBlocked(bl.blocked ?? []);
     setCalendars(ic.calendars ?? []);
     setExportUrl(ic.exportUrl ?? "");
+    setPhotos(ph.photos ?? []);
+    setSeasonalRates(pr.seasonalRates ?? []);
+    setGuestRates(pr.guestRates ?? []);
   }
 
   useEffect(() => {
@@ -152,7 +181,9 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               ["reservas", "Reservas"],
               ["bloqueos", "Bloqueos manuales"],
               ["sync", "Booking.com / iCal"],
-              ["ajustes", "Precios y ajustes"],
+              ["fotos", "Fotos"],
+              ["precios", "Precios"],
+              ["ajustes", "Contenido y ajustes"],
             ] as [Tab, string][]
           ).map(([id, label]) => (
             <button
@@ -191,6 +222,18 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           <SyncTab
             calendars={calendars}
             exportUrl={exportUrl}
+            onChanged={loadAll}
+            onNotice={flash}
+          />
+        )}
+        {tab === "fotos" && (
+          <PhotosTab photos={photos} onChanged={loadAll} onNotice={flash} />
+        )}
+        {tab === "precios" && (
+          <PricingTab
+            settings={settings}
+            seasonalRates={seasonalRates}
+            guestRates={guestRates}
             onChanged={loadAll}
             onNotice={flash}
           />
@@ -687,74 +730,114 @@ function SettingsTab({
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid max-w-lg gap-4 rounded-xl border border-stone-200 bg-white p-6"
+      className="grid max-w-2xl gap-6 rounded-xl border border-stone-200 bg-white p-6"
     >
-      <p className="font-display text-lg text-stone-900">Precios y ajustes</p>
-      <div className="grid grid-cols-2 gap-4">
+      <div>
+        <p className="font-display text-lg text-stone-900">Ajustes generales</p>
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <label className="grid gap-1 text-sm text-stone-700">
+            Estancia mínima (noches)
+            <input
+              type="number"
+              min={1}
+              value={form.minNights}
+              onChange={(e) => setForm({ ...form, minNights: Number(e.target.value) })}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+          <label className="grid gap-1 text-sm text-stone-700">
+            Moneda
+            <input
+              value={form.currency}
+              onChange={(e) => setForm({ ...form, currency: e.target.value })}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+          <label className="grid gap-1 text-sm text-stone-700">
+            Huéspedes incluidos en el precio base
+            <input
+              type="number"
+              min={1}
+              value={form.baseGuests}
+              onChange={(e) => setForm({ ...form, baseGuests: Number(e.target.value) })}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+          <label className="grid gap-1 text-sm text-stone-700">
+            Huéspedes máximos
+            <input
+              type="number"
+              min={1}
+              value={form.maxGuests}
+              onChange={(e) => setForm({ ...form, maxGuests: Number(e.target.value) })}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+        </div>
+        <p className="mt-2 text-xs text-stone-500">
+          Por ejemplo, si el precio base es para 2 huéspedes y el máximo son 6,
+          en la pestaña «Precios» puedes añadir un recargo en % para 3, 4, 5 y
+          6 huéspedes.
+        </p>
+      </div>
+
+      <div className="grid gap-4 border-t border-stone-200 pt-6">
+        <p className="font-display text-lg text-stone-900">Contacto</p>
+        <div className="grid grid-cols-2 gap-4">
+          <label className="grid gap-1 text-sm text-stone-700">
+            Email de contacto
+            <input
+              type="email"
+              value={form.contactEmail}
+              onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+          <label className="grid gap-1 text-sm text-stone-700">
+            Teléfono de contacto
+            <input
+              value={form.contactPhone}
+              onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="grid gap-4 border-t border-stone-200 pt-6">
+        <p className="font-display text-lg text-stone-900">Contenido de la página principal</p>
+        <p className="text-xs text-stone-500">
+          Déjalos en blanco para usar el texto por defecto de la web.
+        </p>
         <label className="grid gap-1 text-sm text-stone-700">
-          Precio / noche (€)
+          Título principal
           <input
-            type="number"
-            min={0}
-            step="0.01"
-            value={form.pricePerNight}
-            onChange={(e) =>
-              setForm({ ...form, pricePerNight: Number(e.target.value) })
-            }
+            value={form.heroTitle}
+            onChange={(e) => setForm({ ...form, heroTitle: e.target.value })}
+            placeholder="Dormir entre vigas, a dos pasos de la Colegiata"
             className="rounded-lg border border-stone-200 px-3 py-2"
           />
         </label>
         <label className="grid gap-1 text-sm text-stone-700">
-          Tasa de limpieza (€)
-          <input
-            type="number"
-            min={0}
-            step="0.01"
-            value={form.cleaningFee}
-            onChange={(e) =>
-              setForm({ ...form, cleaningFee: Number(e.target.value) })
-            }
-            className="rounded-lg border border-stone-200 px-3 py-2"
+          Subtítulo
+          <textarea
+            value={form.heroSubtitle}
+            onChange={(e) => setForm({ ...form, heroSubtitle: e.target.value })}
+            rows={3}
+            className="resize-none rounded-lg border border-stone-200 px-3 py-2"
           />
         </label>
         <label className="grid gap-1 text-sm text-stone-700">
-          Estancia mínima (noches)
-          <input
-            type="number"
-            min={1}
-            value={form.minNights}
-            onChange={(e) =>
-              setForm({ ...form, minNights: Number(e.target.value) })
-            }
-            className="rounded-lg border border-stone-200 px-3 py-2"
-          />
-        </label>
-        <label className="grid gap-1 text-sm text-stone-700">
-          Moneda
-          <input
-            value={form.currency}
-            onChange={(e) => setForm({ ...form, currency: e.target.value })}
-            className="rounded-lg border border-stone-200 px-3 py-2"
+          Texto «El apartamento» (usa una línea en blanco entre párrafos)
+          <textarea
+            value={form.aboutText}
+            onChange={(e) => setForm({ ...form, aboutText: e.target.value })}
+            rows={6}
+            className="resize-none rounded-lg border border-stone-200 px-3 py-2"
           />
         </label>
       </div>
-      <label className="grid gap-1 text-sm text-stone-700">
-        Email de contacto
-        <input
-          type="email"
-          value={form.contactEmail}
-          onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
-          className="rounded-lg border border-stone-200 px-3 py-2"
-        />
-      </label>
-      <label className="grid gap-1 text-sm text-stone-700">
-        Teléfono de contacto
-        <input
-          value={form.contactPhone}
-          onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
-          className="rounded-lg border border-stone-200 px-3 py-2"
-        />
-      </label>
+
       {error && <p className="text-sm text-terracotta-600">{error}</p>}
       <button
         type="submit"
@@ -762,6 +845,374 @@ function SettingsTab({
         className="w-fit rounded-full bg-terracotta-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-terracotta-600 disabled:opacity-60"
       >
         {submitting ? "Guardando…" : "Guardar cambios"}
+      </button>
+    </form>
+  );
+}
+
+function PhotosTab({
+  photos,
+  onChanged,
+  onNotice,
+}: {
+  photos: Photo[] | null;
+  onChanged: () => void;
+  onNotice: (msg: string) => void;
+}) {
+  const [section, setSection] = useState<"hero" | "galeria">("galeria");
+  const [alt, setAlt] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleUpload(e: React.FormEvent) {
+    e.preventDefault();
+    if (!file) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("section", section);
+      formData.append("alt", alt);
+      const res = await fetch("/api/admin/photos", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al subir la foto.");
+      setFile(null);
+      setAlt("");
+      onNotice("Foto subida.");
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("¿Eliminar esta foto?")) return;
+    const res = await fetch("/api/admin/photos", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      onNotice("Foto eliminada.");
+      onChanged();
+    }
+  }
+
+  const heroPhotos = photos?.filter((p) => p.section === "hero") ?? [];
+  const galeriaPhotos = photos?.filter((p) => p.section === "galeria") ?? [];
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
+      <form
+        onSubmit={handleUpload}
+        className="grid h-fit gap-4 rounded-xl border border-stone-200 bg-white p-5"
+      >
+        <p className="font-display text-lg text-stone-900">Añadir foto</p>
+        <label className="grid gap-1 text-sm text-stone-700">
+          Dónde aparece
+          <select
+            value={section}
+            onChange={(e) => setSection(e.target.value as "hero" | "galeria")}
+            className="rounded-lg border border-stone-200 px-3 py-2"
+          >
+            <option value="galeria">Galería</option>
+            <option value="hero">Foto principal (portada)</option>
+          </select>
+        </label>
+        <label className="grid gap-1 text-sm text-stone-700">
+          Archivo (JPG, PNG o WEBP, máx. 4 MB)
+          <input
+            type="file"
+            required
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="rounded-lg border border-stone-200 px-3 py-2 text-sm"
+          />
+        </label>
+        <label className="grid gap-1 text-sm text-stone-700">
+          Descripción (opcional)
+          <input
+            value={alt}
+            onChange={(e) => setAlt(e.target.value)}
+            placeholder="Salón con vigas de madera"
+            className="rounded-lg border border-stone-200 px-3 py-2"
+          />
+        </label>
+        {error && <p className="text-sm text-terracotta-600">{error}</p>}
+        <button
+          type="submit"
+          disabled={submitting || !file}
+          className="rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white hover:bg-stone-800 disabled:opacity-60"
+        >
+          {submitting ? "Subiendo…" : "Subir foto"}
+        </button>
+      </form>
+
+      <div className="grid gap-8">
+        <div>
+          <p className="font-display text-lg text-stone-900">Foto principal (portada)</p>
+          <p className="text-xs text-stone-500">
+            Si no subes ninguna, se usa la foto por defecto de la web.
+          </p>
+          {heroPhotos.length === 0 ? (
+            <p className="mt-3 rounded-xl border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500">
+              Sin foto de portada personalizada todavía.
+            </p>
+          ) : (
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {heroPhotos.map((p) => (
+                <PhotoThumb key={p.id} photo={p} onDelete={handleDelete} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <p className="font-display text-lg text-stone-900">Galería</p>
+          {galeriaPhotos.length === 0 ? (
+            <p className="mt-3 rounded-xl border border-dashed border-stone-300 p-6 text-center text-sm text-stone-500">
+              Todavía no has subido fotos a la galería.
+            </p>
+          ) : (
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {galeriaPhotos.map((p) => (
+                <PhotoThumb key={p.id} photo={p} onDelete={handleDelete} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PhotoThumb({
+  photo,
+  onDelete,
+}: {
+  photo: Photo;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-xl border border-stone-200 bg-stone-100">
+      {/* Fotos dinámicas servidas desde la base de datos vía /api/photos/[id]; next/image no aporta aquí. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`/api/photos/${photo.id}`}
+        alt={photo.alt || "Foto"}
+        className="aspect-square w-full object-cover"
+      />
+      <button
+        onClick={() => onDelete(photo.id)}
+        className="absolute top-1.5 right-1.5 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-terracotta-600 opacity-0 shadow transition group-hover:opacity-100"
+      >
+        Eliminar
+      </button>
+    </div>
+  );
+}
+
+function PricingTab({
+  settings,
+  seasonalRates,
+  guestRates,
+  onChanged,
+  onNotice,
+}: {
+  settings: Settings | null;
+  seasonalRates: SeasonalRate[] | null;
+  guestRates: GuestRate[] | null;
+  onChanged: () => void;
+  onNotice: (msg: string) => void;
+}) {
+  const [pricePerNight, setPricePerNight] = useState(0);
+  const [cleaningFee, setCleaningFee] = useState(0);
+  const [months, setMonths] = useState<(number | "")[]>(Array(12).fill(""));
+  const [guestPercents, setGuestPercents] = useState<Record<number, number>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync freshly-loaded settings into the editable form
+      setPricePerNight(settings.pricePerNight);
+      setCleaningFee(settings.cleaningFee);
+    }
+  }, [settings]);
+
+  useEffect(() => {
+    if (seasonalRates) {
+      const byMonth = new Map(seasonalRates.map((r) => [r.month, r.pricePerNight]));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync freshly-loaded rates into the editable form
+      setMonths(Array.from({ length: 12 }, (_, i) => byMonth.get(i + 1) ?? ""));
+    }
+  }, [seasonalRates]);
+
+  useEffect(() => {
+    if (guestRates && settings) {
+      const byGuests = new Map(guestRates.map((r) => [r.guests, r.percent]));
+      const next: Record<number, number> = {};
+      for (let g = settings.baseGuests + 1; g <= settings.maxGuests; g++) {
+        next[g] = byGuests.get(g) ?? 0;
+      }
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync freshly-loaded rates into the editable form
+      setGuestPercents(next);
+    }
+  }, [guestRates, settings]);
+
+  if (!settings || !seasonalRates || !guestRates) {
+    return <p className="text-stone-500">Cargando precios…</p>;
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      const settingsRes = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...settings, pricePerNight, cleaningFee }),
+      });
+      const pricingRes = await fetch("/api/admin/pricing", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          seasonalRates: months.map((price, i) => ({
+            month: i + 1,
+            pricePerNight: price === "" ? null : Number(price),
+          })),
+          guestRates: Object.entries(guestPercents).map(([guests, percent]) => ({
+            guests: Number(guests),
+            percent: Number(percent),
+          })),
+        }),
+      });
+      if (!settingsRes.ok || !pricingRes.ok) {
+        const data = !settingsRes.ok ? await settingsRes.json() : await pricingRes.json();
+        throw new Error(data.error || "Error al guardar los precios.");
+      }
+      onNotice("Precios guardados.");
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const surchargeGuests = Array.from(
+    { length: Math.max(0, settings.maxGuests - settings.baseGuests) },
+    (_, i) => settings.baseGuests + 1 + i
+  );
+
+  return (
+    <form onSubmit={handleSubmit} className="grid max-w-3xl gap-8">
+      <div className="rounded-xl border border-stone-200 bg-white p-6">
+        <p className="font-display text-lg text-stone-900">Precio base</p>
+        <p className="mt-1 text-xs text-stone-500">
+          Se usa en los meses en los que no fijes un precio de temporada abajo.
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <label className="grid gap-1 text-sm text-stone-700">
+            Precio / noche (€)
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={pricePerNight}
+              onChange={(e) => setPricePerNight(Number(e.target.value))}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+          <label className="grid gap-1 text-sm text-stone-700">
+            Tasa de limpieza (€)
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={cleaningFee}
+              onChange={(e) => setCleaningFee(Number(e.target.value))}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-stone-200 bg-white p-6">
+        <p className="font-display text-lg text-stone-900">Precios por temporada</p>
+        <p className="mt-1 text-xs text-stone-500">
+          Fija un precio distinto por mes (por ejemplo, más caro en julio y
+          agosto). Deja el campo vacío para usar el precio base.
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {MONTH_NAMES.map((name, i) => (
+            <label key={name} className="grid gap-1 text-sm text-stone-700">
+              {name}
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                placeholder={`${pricePerNight}`}
+                value={months[i]}
+                onChange={(e) => {
+                  const value = e.target.value === "" ? "" : Number(e.target.value);
+                  setMonths((m) => m.map((v, idx) => (idx === i ? value : v)));
+                }}
+                className="rounded-lg border border-stone-200 px-3 py-2"
+              />
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-stone-200 bg-white p-6">
+        <p className="font-display text-lg text-stone-900">Recargo por número de huéspedes</p>
+        <p className="mt-1 text-xs text-stone-500">
+          El precio base es para {settings.baseGuests} huéspedes. Añade un
+          recargo en % sobre el precio de las noches para reservas con más
+          gente. Se aplica solo al alojamiento, no a la limpieza.
+        </p>
+        {surchargeGuests.length === 0 ? (
+          <p className="mt-4 text-sm text-stone-500">
+            Sube «Huéspedes máximos» por encima de «Huéspedes incluidos en el
+            precio base» en la pestaña Contenido y ajustes para poder añadir
+            recargos.
+          </p>
+        ) : (
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {surchargeGuests.map((g) => (
+              <label key={g} className="grid gap-1 text-sm text-stone-700">
+                {g} huéspedes
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={guestPercents[g] ?? 0}
+                    onChange={(e) =>
+                      setGuestPercents((p) => ({ ...p, [g]: Number(e.target.value) }))
+                    }
+                    className="w-full rounded-lg border border-stone-200 px-3 py-2"
+                  />
+                  <span className="text-stone-500">%</span>
+                </div>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {error && <p className="text-sm text-terracotta-600">{error}</p>}
+      <button
+        type="submit"
+        disabled={submitting}
+        className="w-fit rounded-full bg-terracotta-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-terracotta-600 disabled:opacity-60"
+      >
+        {submitting ? "Guardando…" : "Guardar precios"}
       </button>
     </form>
   );

@@ -61,5 +61,35 @@ model Settings {
   contactEmail    String   @default("entrevigasapartamentosdm@gmail.com")
   contactPhone    String   @default("+34 634 218 140")
   icalExportToken String   @default("")
+  baseGuests      Int      @default(2)
+  maxGuests       Int      @default(6)
+  heroTitle       String   @default("")
+  heroSubtitle    String   @default("")
+  aboutText       String   @default("")
   updatedAt       DateTime @updatedAt
+}
+
+// Precio por noche para un mes concreto (1 = enero ... 12 = diciembre).
+// Si un mes no tiene fila, se usa Settings.pricePerNight.
+model SeasonalRate {
+  month         Int   @id
+  pricePerNight Float
+}
+
+// Recargo porcentual sobre el precio de las noches (no sobre la limpieza)
+// para un número de huéspedes concreto. Los huéspedes <= Settings.baseGuests
+// no llevan recargo. Ej: { guests: 4, percent: 20 } = +20% con 4 huéspedes.
+model GuestRate {
+  guests  Int   @id
+  percent Float
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  data      Bytes
+  mimeType  String
+  alt       String   @default("")
+  section   String   @default("galeria") // "hero" | "galeria"
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
 }

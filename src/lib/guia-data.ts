@@ -1,4 +1,4 @@
-import type { Poi, Restaurant } from "@/components/guia/GuideBits";
+import type { Actividad, Poi, Restaurant } from "@/components/guia/GuideBits";
 
 export const bloque1: Poi[] = [
   {
@@ -662,6 +662,144 @@ export const restaurantesPorCategoria = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Actividades y planes al aire libre
+
+export const actividadesPorDistancia = [
+  { km: "0 km", nombre: "Paseos a caballo La Robleda", tiempo: "a pie · 2 min", lugar: "Av. Antonio Sandi s/n, Santillana del Mar", tipo: "Ecuestre · rutas y ponis", recomendado: true },
+  { km: "0 km", nombre: "Paseos a caballo Allende", tiempo: "a pie", lugar: "Frente al claustro, Santillana del Mar", tipo: "Ecuestre · rutas · ponis para niños", recomendado: true },
+  { km: "10 km", nombre: "Zink Pádel Sport Center", tiempo: "12 min", lugar: "Parque Emp. Besaya, Nave 1 · Reocín", tipo: "Pádel · 5 pistas indoor · tienda", recomendado: true },
+  { km: "15 km", nombre: "CrossFit 39300 Torrelavega", tiempo: "18 min", lugar: "C/ Pablo Garnica, 27 · Torrelavega", tipo: "CrossFit · 800 m² · box oficial" },
+  { km: "25 km", nombre: "Black Shark Surf School", tiempo: "25 min", lugar: "Barrio La Playa, 218B · Cóbreces", tipo: "Surf · camp · alojamiento · Luaña", recomendado: true },
+  { km: "28 km", nombre: "Santander CrossFit", tiempo: "30 min", lugar: "Polígono Raos 31, Nave 9 · Santander", tipo: "CrossFit · +1.200 m² · HYROX", recomendado: true },
+  { km: "28 km", nombre: "Motos de agua — Puerto de Raos", tiempo: "30 min", lugar: "Puerto Deportivo Marina · Raos, Santander", tipo: "Moto de agua · sin licencia · monitor" },
+  { km: "28 km", nombre: "Kayak y SUP en la bahía de Santander", tiempo: "30 min", lugar: "Muelle Puertochico · Santander", tipo: "Kayak · SUP · vistas Magdalena" },
+  { km: "35 km", nombre: "Ruta Costa Quebrada — Arnía", tiempo: "35 min", lugar: "Liencres, Piélagos", tipo: "Senderismo · geología única" },
+  { km: "50 km", nombre: "Descenso del río Deva", tiempo: "50 min", lugar: "Panes — Liébana", tipo: "Canoa · desfiladero · espectacular" },
+  { km: "55 km", nombre: "Descenso del río Sella", tiempo: "55 min", lugar: "Arriondas — Ribadesella, Asturias", tipo: "Canoa · ~12 km · verano" },
+  { km: "90 km", nombre: "Senderismo Picos de Europa — Fuente Dé", tiempo: "1 h 20 min", lugar: "Fuente Dé, Liébana", tipo: "Montaña · teleférico · 1.823 m" },
+];
+
+export const actividadesDestacadas: Actividad[] = [
+  {
+    nombre: "Paseos a Caballo La Robleda",
+    lugar: "Av. Antonio Sandi, s/n (junto al Restaurante El Bisonte Rojo) · Santillana del Mar",
+    km: "0 km",
+    tiempo: "a pie · 2 min",
+    top: true,
+    tags: ["Más cercano al apartamento", "Todos los niveles", "Ponis para niños"],
+    descripcion:
+      "Centro ecuestre justo en la Avenida Antonio Sandi, al lado del apartamento. Rutas y excursiones a caballo para todos los niveles, desde paseos relajados de una hora hasta jornadas de varios días. Caballos de temperamento dócil, y paseos en poni para los más pequeños con monitores expertos.",
+    contacto: "Tel. 637 37 60 90",
+    precio: "Paseo en poni desde 5 €",
+    nota: "No hace falta reserva para los paseos en poni; para rutas a caballo, llamar antes.",
+  },
+  {
+    nombre: "Rutas a Caballo y Paseos en Poni Allende",
+    lugar: "Frente al claustro de la Colegiata · Santillana del Mar",
+    km: "0 km",
+    tiempo: "a pie",
+    tags: ["Primera agencia ecuestre de Cantabria", "Rutas guiadas", "Poni Club"],
+    descripcion:
+      "La primera agencia de actividades ecuestres de Cantabria, frente al claustro de la Colegiata. Rutas para principiantes y jinetes con experiencia, y Poni Club especializado para niños. Ideal para familias — se puede combinar con una visita al casco histórico el mismo día.",
+  },
+  {
+    nombre: "Black Shark Surf School & Surf House",
+    lugar: "Barrio La Playa, 218B · Cóbreces (Alfoz de Lloredo)",
+    km: "25 km",
+    tiempo: "25 min",
+    top: true,
+    tags: ["Escuela oficial de surf", "A 50 m de la playa de Luaña", "Alojamiento incluido"],
+    descripcion:
+      "La escuela de surf de Raúl en la playa de Luaña, entre Santillana del Mar y Comillas. Clases sueltas, pack fin de semana, pack semanal y surf camp de niños en julio (6 a 15 años). Monitores titulados, grupos máximo de 6 alumnos, todo el equipo incluido.",
+    contacto: "Tel. 640 95 77 39 · info@blackshark.surf",
+    nota: "Playa de Luaña con Bandera Azul, aparcamiento y duchas.",
+  },
+  {
+    nombre: "Zink Pádel Sport Center",
+    lugar: "Parque Empresarial Besaya, Parcela D, Nave 1 · Reocín",
+    km: "10 km",
+    tiempo: "12 min",
+    top: true,
+    tags: ["5 pistas indoor", "Tienda especializada", "Zona social 200 m²"],
+    descripcion:
+      "Club de pádel de referencia en la zona: 5 pistas indoor de cristal, tienda especializada y zona de relax con TV. Si necesitas material o quieres organizar un partido, contacta directamente — siempre hay gente buscando partidos.",
+    contacto: "Tel. 682 640 534 / 942 735 958 · zinkpadel@gmail.com",
+  },
+  {
+    nombre: "CrossFit 39300 — Torrelavega",
+    lugar: "C/ Pablo Garnica, 27 · Torrelavega",
+    km: "15 km",
+    tiempo: "18 min",
+    tags: ["Box oficial CrossFit", "800 m²", "5/5 en Google"],
+    descripcion:
+      "El primer box oficial de CrossFit en Torrelavega, 800 m² de estilo industrial. Horario amplio de lunes a domingo, drop-in disponible para visitantes previa confirmación.",
+    contacto: "Tel. 623 599 949 · box39300@gmail.com",
+  },
+  {
+    nombre: "Santander CrossFit",
+    lugar: "Polígono de Raos 31, Nave 9 (junto a ITV) · Santander",
+    km: "28 km",
+    tiempo: "30 min",
+    top: true,
+    tags: ["+1.200 m²", "HYROX", "Halterofilia · Open Box"],
+    descripcion:
+      "Box de CrossFit en el Polígono de Raos, el mismo punto de salida que las motos de agua — se pueden combinar en el mismo día. CrossFit, halterofilia, HYROX, gimnasio y Open Box.",
+    contacto: "santandercrossfit@outlook.es",
+  },
+  {
+    nombre: "Motos de agua — Puerto Deportivo de Raos",
+    lugar: "Marina del Cantábrico · Polígono de Raos · Santander",
+    km: "28 km",
+    tiempo: "30 min",
+    tags: ["Sin licencia necesaria", "Monitor incluido", "Hasta 2 personas por moto"],
+    descripcion:
+      "Recorre la bahía de Santander en moto de agua, con vistas al Palacio de la Magdalena y el Sardinero. No hace falta titulación: un monitor va delante abriendo camino. Todo incluido (chaleco, neopreno, briefing). Apto desde 16 años.",
+    precio: "~70 €/30 min · ~110 €/1 hora · descuento grupos de 4–8 motos",
+    nota: "Reservar con antelación en verano.",
+  },
+  {
+    nombre: "Descenso del río Sella",
+    lugar: "Arriondas — Ribadesella, Asturias",
+    km: "55 km",
+    tiempo: "55 min",
+    tags: ["Experiencia única", "~12 km de río", "Apto desde 6 años"],
+    descripcion:
+      "Uno de los descensos fluviales más famosos de España: ~12 km en canoa biplaza desde Arriondas hasta Ribadesella, entre bosques de ribera y paredes de roca. Las empresas incluyen transporte de vuelta. Temporada primavera–otoño.",
+    nota: "Reservar con antelación en agosto. Dura entre 3 y 5 horas.",
+  },
+  {
+    nombre: "Descenso del río Deva",
+    lugar: "Panes — Valle de Liébana",
+    km: "50 km",
+    tiempo: "50 min",
+    tags: ["Desfiladero espectacular", "Paredes de 2.000 m", "Más salvaje que el Sella"],
+    descripcion:
+      "El Deva discurre por el impresionante Desfiladero de La Hermida, entre paredes que alcanzan los 2.000 metros. Combina tramos tranquilos con rápidos suaves. Se puede combinar con una visita a Potes y el Valle de Liébana el mismo día.",
+  },
+];
+
+export const actividadesOtras = [
+  {
+    titulo: "Kayak y SUP en la bahía de Santander",
+    texto:
+      "28 km · 30 min. Recorre en kayak o SUP la bahía con vistas al Palacio de la Magdalena. Alquiler en el muelle de Puertochico.",
+  },
+  {
+    titulo: "Ruta Costa Quebrada — Arnía",
+    texto:
+      "35 km · 35 min. Sendero de 8–10 km entre los Urros de Liencres y la playa de la Arnía, entre acantilados únicos. Llevar calzado antideslizante y ir con marea baja.",
+  },
+  {
+    titulo: "Picos de Europa — Fuente Dé",
+    texto:
+      "90 km · 1 h 20 min. Teleférico hasta los 1.823 m con vistas panorámicas. Reservar en cantur.es en temporada alta.",
+  },
+];
+
+export const consejoActividades =
+  "Surf, kayak y motos de agua: mejor junio–septiembre. Descensos del Sella y Deva: abril–octubre. Senderismo en Picos: junio–octubre. Pádel y CrossFit disponibles todo el año. Caballos, también todo el año — el entorno otoñal e invernal de Santillana tiene su propio encanto. Para cualquiera de estas actividades puedes contactar con nosotros directamente: te ayudamos a organizarla y resolvemos tus dudas según disponibilidad.";
 
 // ---------------------------------------------------------------------------
 // Playas

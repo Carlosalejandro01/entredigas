@@ -110,6 +110,54 @@ export function RestaurantCard({ r }: { r: Restaurant }) {
   );
 }
 
+export type Actividad = {
+  nombre: string;
+  lugar: string;
+  km: string;
+  tiempo: string;
+  tags: string[];
+  descripcion: string;
+  contacto?: string;
+  precio?: string;
+  nota?: string;
+  top?: boolean;
+};
+
+export function ActividadCard({ a }: { a: Actividad }) {
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-display text-lg text-stone-900">
+            {a.nombre}
+            {a.top && <span className="ml-2 text-xs text-terracotta-600">★ RECOMENDADO</span>}
+          </p>
+          <p className="text-xs text-stone-500">{a.lugar}</p>
+        </div>
+        <Badge tone="stone">{a.km === "0 km" ? "A pie" : `${a.km} · ${a.tiempo}`}</Badge>
+      </div>
+      {a.tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {a.tags.map((t) => (
+            <span
+              key={t}
+              className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs text-stone-600"
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
+      <p className="mt-3 text-sm text-stone-700">{a.descripcion}</p>
+      {a.precio && (
+        <p className="mt-2 text-xs font-semibold text-stone-800">{a.precio}</p>
+      )}
+      {a.contacto && <p className="mt-1 text-xs text-stone-500">{a.contacto}</p>}
+      {a.nota && <p className="mt-2 text-xs italic text-terracotta-600">{a.nota}</p>}
+    </div>
+  );
+}
+
 export function SectionKicker({ children }: { children: ReactNode }) {
   return (
     <p className="text-xs font-semibold tracking-[0.2em] text-terracotta-600 uppercase">
