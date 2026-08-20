@@ -187,7 +187,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             Cerrar sesión
           </button>
         </div>
-        <div className="mx-auto flex max-w-5xl gap-1 px-5">
+        <div className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-5">
           {(
             [
               ["reservas", "Reservas"],
@@ -202,7 +202,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`border-b-2 px-3 py-2.5 text-sm font-medium transition ${
+              className={`shrink-0 border-b-2 px-3 py-2.5 text-sm font-medium whitespace-nowrap transition ${
                 tab === id
                   ? "border-terracotta-500 text-terracotta-600"
                   : "border-transparent text-stone-500 hover:text-stone-800"

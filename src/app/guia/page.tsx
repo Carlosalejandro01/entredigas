@@ -20,10 +20,28 @@ import {
   rutas,
 } from "@/lib/guia-data";
 
+const guiaTitle = "Guía de Santillana del Mar y Cantabria · Entre Vigas";
+const guiaDescription =
+  "Qué ver, dónde comer y en qué playas bañarte cerca del apartamento Entre Vigas, en Santillana del Mar. Distancias reales, precios y consejos de quienes lo conocen.";
+
 export const metadata: Metadata = {
-  title: "Guía de Santillana del Mar y Cantabria · Entre Vigas",
-  description:
-    "Qué ver, dónde comer y en qué playas bañarte cerca del apartamento Entre Vigas, en Santillana del Mar. Distancias reales, precios y consejos de quienes lo conocen.",
+  title: guiaTitle,
+  description: guiaDescription,
+  openGraph: {
+    title: guiaTitle,
+    description: guiaDescription,
+    url: "/guia",
+    siteName: "Entre Vigas",
+    images: [{ url: "/gallery/fachada.jpg", width: 1200, height: 900 }],
+    locale: "es_ES",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: guiaTitle,
+    description: guiaDescription,
+    images: ["/gallery/fachada.jpg"],
+  },
 };
 
 const subnav = [

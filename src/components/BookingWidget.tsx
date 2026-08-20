@@ -56,7 +56,21 @@ function formatDate(d: Date) {
   }).format(d);
 }
 
+function useIsNarrowScreen() {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 640px)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- read the initial viewport size on mount
+    setNarrow(query.matches);
+    const onChange = (e: MediaQueryListEvent) => setNarrow(e.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+  return narrow;
+}
+
 export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
+  const isNarrowScreen = useIsNarrowScreen();
   const [availability, setAvailability] = useState<Availability | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [range, setRange] = useState<DateRange | undefined>();
@@ -254,7 +268,7 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
                   <DayPicker
                     mode="range"
                     locale={es}
-                    numberOfMonths={2}
+                    numberOfMonths={isNarrowScreen ? 1 : 2}
                     selected={range}
                     onSelect={handleRangeSelect}
                     disabled={{ before: today }}
