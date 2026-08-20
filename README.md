@@ -1,16 +1,19 @@
 # Entre Vigas — web de reservas
 
 Web de reserva directa para el apartamento **Entre Vigas** en Santillana
-del Mar. Construida con Next.js (App Router), Prisma + SQLite y Tailwind
-CSS. Los clientes reservan desde la web, y en cuanto una reserva se crea
-esas fechas quedan bloqueadas automáticamente para que nadie más pueda
-solicitarlas.
+del Mar. Construida con Next.js (App Router), Prisma + PostgreSQL y
+Tailwind CSS. Los clientes reservan desde la web, y en cuanto una
+reserva se crea esas fechas quedan bloqueadas automáticamente para que
+nadie más pueda solicitarlas.
 
 ## Puesta en marcha
 
+Necesitas una base de datos PostgreSQL (local o gratuita en
+[Neon](https://neon.tech)).
+
 ```bash
 npm install
-cp .env.example .env   # y cambia ADMIN_PASSWORD por una clave segura
+cp .env.example .env   # pon tu DATABASE_URL de Postgres y cambia ADMIN_PASSWORD
 npx prisma migrate dev
 npm run dev
 ```
@@ -87,12 +90,12 @@ del hero) de ese archivo.
 
 ## Despliegue en producción
 
-- **Base de datos**: por defecto se usa SQLite (`prisma/dev.db`), que
-  funciona bien en un servidor con disco persistente (VPS, Railway,
-  Render). Si despliegas en una plataforma *serverless* sin disco
-  persistente (por ejemplo Vercel), cambia el `datasource` de
-  `prisma/schema.prisma` a Postgres (Vercel Postgres, Neon, Supabase o
-  Turso) y ejecuta `npx prisma migrate deploy`.
+Guía paso a paso completa en [`DEPLOY.md`](./DEPLOY.md).
+
+- **Base de datos**: PostgreSQL (Neon, Vercel Postgres, Supabase...).
+  El comando `npm run build` ya ejecuta `prisma migrate deploy`
+  automáticamente antes de compilar, así que cada despliegue actualiza
+  el esquema de la base de datos sin pasos manuales.
 - **Variables de entorno**: define `DATABASE_URL` y `ADMIN_PASSWORD` en
   la plataforma de despliegue.
 - **Notificaciones**: ahora mismo las reservas nuevas solo se ven en
