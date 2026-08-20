@@ -85,6 +85,7 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
     phone: "",
     guests: 2,
     message: "",
+    website: "", // campo trampa para bots, no se muestra a personas
   });
   const [confirmation, setConfirmation] = useState<{
     checkIn: string;
@@ -217,6 +218,7 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
           checkIn: toDateOnly(range.from).toISOString(),
           checkOut: toDateOnly(range.to).toISOString(),
           message: form.message || undefined,
+          website: form.website || undefined,
         }),
       });
       const data = await res.json();
@@ -290,6 +292,16 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
 
             {step === "details" && (
               <form onSubmit={handleSubmit} className="mt-4 grid gap-4">
+                <input
+                  type="text"
+                  name="website"
+                  value={form.website}
+                  onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="absolute -left-[9999px] h-0 w-0 opacity-0"
+                />
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="grid gap-1 text-sm text-stone-700">
                     Nombre y apellidos
@@ -496,7 +508,7 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
             onClick={() => {
               setStep("dates");
               setRange(undefined);
-              setForm({ guestName: "", email: "", phone: "", guests: 2, message: "" });
+              setForm({ guestName: "", email: "", phone: "", guests: 2, message: "", website: "" });
               setConfirmation(null);
               loadAvailability();
             }}

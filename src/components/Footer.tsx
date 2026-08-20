@@ -91,6 +91,9 @@ export default async function Footer() {
       </div>
       <div className="border-t border-white/10 py-5 text-center text-xs text-stone-500">
         © {new Date().getFullYear()} Entre Vigas · Santillana del Mar
+        {settings.licenseNumber && (
+          <> · Vivienda de uso turístico nº {settings.licenseNumber}</>
+        )}
       </div>
     </footer>
   );

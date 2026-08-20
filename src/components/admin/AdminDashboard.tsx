@@ -34,6 +34,7 @@ type Settings = {
   aboutText: string;
   googleMapsUrl: string;
   googleReviewUrl: string;
+  licenseNumber: string;
 };
 
 type Photo = {
@@ -845,6 +846,19 @@ function SettingsTab({
           <span className="text-xs text-stone-500">
             Si lo dejas en blanco, no se muestra el botón de «Déjanos tu
             opinión» en la web.
+          </span>
+        </label>
+        <label className="grid gap-1 text-sm text-stone-700">
+          Número de licencia de vivienda de uso turístico
+          <input
+            value={form.licenseNumber}
+            onChange={(e) => setForm({ ...form, licenseNumber: e.target.value })}
+            placeholder="G-110937"
+            className="rounded-lg border border-stone-200 px-3 py-2"
+          />
+          <span className="text-xs text-stone-500">
+            Se muestra en el pie de página. Solo el número de licencia; no
+            pongas aquí DNI ni otros datos del registro.
           </span>
         </label>
       </div>

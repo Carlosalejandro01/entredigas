@@ -26,6 +26,7 @@ const schema = z.object({
   aboutText: z.string().max(4000),
   googleMapsUrl: z.string().url().max(500).or(z.literal("")),
   googleReviewUrl: z.string().url().max(500).or(z.literal("")),
+  licenseNumber: z.string().max(60),
 });
 
 export async function PUT(request: Request) {

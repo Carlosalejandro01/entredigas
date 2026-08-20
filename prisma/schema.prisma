@@ -68,6 +68,7 @@ model Settings {
   aboutText       String   @default("")
   googleMapsUrl   String   @default("")
   googleReviewUrl String   @default("")
+  licenseNumber   String   @default("")
   updatedAt       DateTime @updatedAt
 }
 
@@ -113,4 +114,14 @@ model Amenity {
   id    String @id @default(cuid())
   label String
   order Int    @default(0)
+}
+
+// Registro de intentos (login de admin, envío de reservas) para limitar
+// abusos. `key` identifica el tipo y el origen, p. ej. "login:1.2.3.4".
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
 }

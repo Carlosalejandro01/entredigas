@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { computeQuote, getOccupiedRanges } from "@/lib/booking";
 import { nightsBetween, rangesOverlap, toDateOnly } from "@/lib/dates";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 
 const bookingSchema = z
   .object({
@@ -13,10 +14,22 @@ const bookingSchema = z
     checkIn: z.string(),
     checkOut: z.string(),
     message: z.string().trim().max(1000).optional(),
+    // Campo trampa: invisible para personas, pero los formularios rellenados
+    // automáticamente por bots suelen completarlo. Si llega con contenido,
+    // se descarta la petición silenciosamente.
+    website: z.string().max(200).optional(),
   })
   .strict();
 
 export async function POST(request: Request) {
+  const allowed = await checkRateLimit(`booking:${clientIp(request)}`, 8, 60 * 60 * 1000);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Se han enviado demasiadas solicitudes desde aquí. Prueba de nuevo más tarde." },
+      { status: 429 }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -29,6 +42,15 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Datos de reserva no válidos.", issues: parsed.error.flatten() },
       { status: 400 }
+    );
+  }
+
+  if (parsed.data.website) {
+    // Petición de un bot: respondemos como si todo fuese bien para no darle
+    // pistas, pero no creamos ninguna reserva.
+    return NextResponse.json(
+      { id: "ok", checkIn: parsed.data.checkIn, checkOut: parsed.data.checkOut, nights: 0, totalPrice: 0, currency: "EUR", status: "pending" },
+      { status: 201 }
     );
   }
 
