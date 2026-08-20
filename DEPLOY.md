@@ -1,80 +1,158 @@
-# Publicar Entre Vigas en internet
+# Publicar Entre Vigas en internet — guía muy detallada
 
-Guía paso a paso para tener la web funcionando con una URL real,
-gratis, en unos 10-15 minutos. Vas a necesitar: una base de datos
-Postgres gratuita (Neon) y un hosting gratuito para la web (Vercel).
+Vas a hacer 4 cosas, en este orden: **(0)** aprobar el código, **(1)**
+crear una base de datos gratis, **(2)** publicar la web gratis, **(3)**
+conectar Booking.com. Ninguna requiere saber programar. Tiempo total:
+10-15 minutos. Todo lo que necesitas crear es gratis.
 
-## Paso 0 — Fusiona el Pull Request
+---
 
-Todo el código está en una rama separada esperando revisión. Fusiónala
-a `main` para que sea la versión "oficial" que se publique:
+## Paso 0 — Aprobar el código (fusionar el Pull Request)
 
-1. Abre **https://github.com/Carlosalejandro01/entredigas/pull/1**
-2. Pulsa **"Merge pull request"** → **"Confirm merge"**
+Todo lo que he programado está guardado en una "rama" separada,
+esperando tu aprobación antes de pasar a ser la versión oficial.
 
-## Paso 1 — Crea la base de datos (Neon, gratis)
+1. Abre este enlace: **https://github.com/Carlosalejandro01/entredigas/pull/1**
+2. Baja hasta el final de la página. Verás un botón verde que dice
+   **"Merge pull request"**. Púlsalo.
+3. Aparece un segundo botón, **"Confirm merge"**. Púlsalo también.
+4. Ya está — verás un mensaje morado de "Pull request successfully
+   merged". No hace falta hacer nada más aquí.
 
-1. Ve a **https://neon.tech** y crea una cuenta (puedes entrar
-   directamente con tu cuenta de GitHub).
-2. Crea un proyecto nuevo. Cualquier nombre y región te sirve (elige
-   una región de Europa si te la ofrece, para que vaya más rápido).
-3. Cuando se cree, Neon te muestra una **cadena de conexión** que
-   empieza por `postgresql://...`. Cópiala entera — la necesitas en
-   el paso 3. (Si la pierdes, está siempre disponible en el panel del
-   proyecto, botón "Connect".)
+---
 
-## Paso 2 — Crea la web en Vercel (gratis)
+## Paso 1 — Crear la base de datos (Neon, gratis)
 
-1. Ve a **https://vercel.com** y crea una cuenta entrando con tu
-   cuenta de GitHub (así Vercel ve tus repositorios automáticamente).
-2. Pulsa **"Add New..."** → **"Project"**.
-3. Busca y selecciona el repositorio **`entredigas`** → **"Import"**.
-4. Antes de pulsar el botón final de desplegar, despliega la sección
-   **"Environment Variables"** y añade estas dos:
+Es donde se guardarán tus reservas, precios, etc.
 
-   | Name | Value |
-   |---|---|
-   | `DATABASE_URL` | la cadena de conexión de Neon del paso 1 |
-   | `ADMIN_PASSWORD` | una contraseña segura para tu panel de administración (apúntala, la necesitarás en `/admin`) |
+1. Abre **https://neon.tech** en una pestaña nueva.
+2. Pulsa **"Sign up"** (o "Get started") arriba a la derecha.
+3. Elige **"Continue with GitHub"** e inicia sesión con tu cuenta de
+   GitHub (la misma con la que tienes el repositorio `entredigas`).
+   Te pedirá autorizar el acceso — acepta.
+4. Te pedirá crear tu primer proyecto:
+   - **Project name**: pon `entrevigas` (o lo que quieras, es solo
+     una etiqueta para ti).
+   - **Postgres version**: déjalo con el valor que venga por
+     defecto.
+   - **Region**: si te deja elegir, escoge una de Europa (por
+     ejemplo "Europe (Frankfurt)") — así irá más rápido.
+   - Pulsa **"Create project"**.
+5. En unos segundos verás la pantalla del proyecto con un recuadro
+   que pone **"Connection string"**, con un texto que empieza por
+   `postgresql://...` y un botón para copiarlo (icono de dos
+   cuadraditos).
+6. **Pulsa el botón de copiar** y guarda ese texto en algún sitio a
+   mano (una nota, un email a ti mismo) — es largo y lo vas a
+   necesitar en el Paso 2. Si más adelante lo pierdes, siempre puedes
+   volver a Neon → tu proyecto → botón **"Connect"** para verlo de
+   nuevo.
 
-5. Pulsa **"Deploy"** y espera 1-2 minutos. Vercel instala todo,
-   crea las tablas de la base de datos automáticamente y publica la
-   web.
-6. Cuando termine, Vercel te da una URL del tipo
-   `https://entredigas.vercel.app` (o similar) — esa es tu web, ya
-   visible para cualquiera. Puedes entrar ahora mismo y probarla.
+---
 
-## Paso 3 — Conecta Booking.com
+## Paso 2 — Publicar la web (Vercel, gratis)
 
-Ya tienes tu web en `https://tu-web.vercel.app`. Ahora:
+1. Abre **https://vercel.com** en una pestaña nueva.
+2. Pulsa **"Sign Up"**.
+3. Elige **"Continue with GitHub"** e inicia sesión con la misma
+   cuenta de GitHub. Autoriza el acceso cuando te lo pida.
+4. Es posible que te pregunte qué tipo de cuenta quieres — elige la
+   opción personal/gratuita ("Hobby").
+5. Una vez dentro, pulsa **"Add New..."** (arriba a la derecha) →
+   **"Project"**.
+6. Verás una lista de tus repositorios de GitHub. Busca
+   **`entredigas`**.
+   - **Si no aparece en la lista**: pulsa el enlace
+     **"Adjust GitHub App Permissions"** (o "Configure GitHub App"),
+     te lleva a GitHub, elige **"Only select repositories"**, marca
+     `entredigas` en la lista, y guarda. Vuelve a la pestaña de
+     Vercel y ahora sí debería aparecer.
+7. Junto a `entredigas`, pulsa **"Import"**.
+8. Vercel detecta automáticamente que es un proyecto Next.js — no
+   toques nada de "Build and Output Settings", ya está todo
+   configurado en el proyecto.
+9. Antes de darle a publicar, despliega la sección
+   **"Environment Variables"** (pulsa sobre el título para que se
+   abra). Vas a añadir dos variables, una por una:
 
-1. Entra en `https://tu-web.vercel.app/admin` con la contraseña que
-   pusiste en `ADMIN_PASSWORD`.
-2. Ve a la pestaña **"Booking.com / iCal"**.
-3. Copia el enlace de exportación que te muestra la web y pégalo en
-   Booking.com Extranet → *Tarifas y disponibilidad* → *Sincronizar
-   calendarios* → sección de importar/exportar de tu propiedad.
-4. En esa misma sección de Booking.com, copia el enlace de
-   "Exportar calendario" de Booking.com y pégalo en el formulario de
-   la pestaña "Booking.com / iCal" de tu web, con el nombre
-   "Booking.com" → **"Conectar"**.
+   - Primera fila:
+     - **Key** (o "Name"): `DATABASE_URL`
+     - **Value**: pega aquí el texto `postgresql://...` que copiaste
+       de Neon en el Paso 1.
+     - Pulsa **"Add"**.
+   - Segunda fila:
+     - **Key**: `ADMIN_PASSWORD`
+     - **Value**: escribe una contraseña que tú elijas para entrar
+       al panel de administración de tu web (apúntala en algún
+       sitio, la necesitarás en el Paso 3).
+     - Pulsa **"Add"**.
 
-Con eso, las reservas de Booking.com bloquean tu web y las reservas de
-tu web bloquean Booking.com.
+10. Pulsa el botón azul **"Deploy"**.
+11. Vercel se pone a trabajar: instala el proyecto, prepara la base
+    de datos y publica la web. Verás una pantalla con el progreso —
+    tarda entre 1 y 3 minutos. No cierres la pestaña.
+12. Cuando termine, verás confeti en pantalla y un botón
+    **"Continue to Dashboard"** o una vista previa de tu web. Arriba
+    verás la URL de tu proyecto, algo como
+    `https://entredigas.vercel.app` (Vercel a veces le añade
+    números si el nombre ya existe, tipo `entredigas-abc123.vercel.app`
+    — no pasa nada, esa es tu URL igualmente).
 
-## Después de publicar
+**Esa URL ya es tu web, publicada y visible para cualquiera.** Ábrela
+en una pestaña nueva y échale un vistazo.
 
-- **Precio, limpieza, estancia mínima**: pestaña "Precios y ajustes"
-  en `/admin`.
-- **Cerrar fechas a mano** (mantenimiento, uso propio...): pestaña
-  "Bloqueos manuales" en `/admin`.
-- **Fotos**: si quieres cambiarlas, mándamelas por el chat y las
-  subo, o edítalas tú directamente en `public/gallery/`.
-- **Dominio propio** (por ejemplo `entrevigas.es` en vez de
-  `...vercel.app`): en Vercel, el proyecto → *Settings* →
-  *Domains* → añade el dominio que compres en cualquier registrador
-  (Namecheap, la propia Vercel, etc.) y sigue las instrucciones de
-  DNS que te da.
-- **Cada vez que quieras un cambio en la web**: dímelo en este chat,
-  yo hago el cambio, lo subo a GitHub, y Vercel vuelve a publicar la
-  web sola en 1-2 minutos — no hay que repetir estos pasos.
+---
+
+## Paso 3 — Conectar Booking.com
+
+1. En tu web publicada, ve a `/admin` (por ejemplo
+   `https://entredigas.vercel.app/admin`).
+2. Escribe la contraseña que pusiste como `ADMIN_PASSWORD` en el
+   Paso 2 → **"Acceder"**.
+3. Arriba, pulsa la pestaña **"Booking.com / iCal"**.
+4. En el primer recuadro ("1. Exporta tu calendario a Booking.com")
+   verás un enlace largo con un botón **"Copiar"**. Púlsalo.
+5. Ve a Booking.com Extranet (donde gestionas tu propiedad) →
+   *Tarifas y disponibilidad* → *Sincronizar calendarios* → busca la
+   opción para **importar** un calendario externo, y pega ahí el
+   enlace que acabas de copiar.
+6. En esa misma sección de Booking.com verás una opción para
+   **exportar** su calendario — copia ese enlace (empieza por
+   `https://ical.booking.com/...`).
+7. Vuelve a la pestaña "Booking.com / iCal" de tu web, en el segundo
+   recuadro ("2. Importa el calendario de Booking.com"):
+   - En el primer campo escribe `Booking.com`.
+   - En el segundo campo pega el enlace que acabas de copiar de
+     Booking.com.
+   - Pulsa **"Conectar"**.
+8. En un momento verás el calendario listado con la fecha de la
+   última sincronización.
+
+A partir de aquí: una reserva en tu web bloquea esas fechas en
+Booking.com, y una reserva en Booking.com bloquea esas fechas en tu
+web (se revisa sola cada 30 minutos, o pulsa "Sincronizar ahora"
+cuando quieras forzarlo).
+
+---
+
+## Ya está publicada. ¿Y ahora qué?
+
+- **Cambiar precios, tasa de limpieza o estancia mínima**: `/admin` →
+  pestaña "Precios y ajustes".
+- **Cerrar fechas a mano** (mantenimiento, uso propio...): `/admin` →
+  pestaña "Bloqueos manuales".
+- **Ver y confirmar reservas**: `/admin` → pestaña "Reservas".
+- **Cambiar fotos**: mándamelas por este chat y las subo yo.
+- **Poner un dominio propio** (por ejemplo `entrevigas.es` en vez de
+  `...vercel.app`): compra el dominio donde quieras (Namecheap, la
+  propia Vercel, etc.), luego en Vercel → tu proyecto → *Settings* →
+  *Domains* → escribe el dominio y sigue las instrucciones de DNS
+  que te da Vercel.
+- **Cualquier cambio futuro en la web**: pídemelo en este chat. Yo
+  hago el cambio y lo subo a GitHub — Vercel detecta el cambio y
+  vuelve a publicar la web solo, en 1-2 minutos, sin que tengas que
+  repetir nada de esta guía.
+
+Si algo no te aparece exactamente igual que aquí (Vercel y Neon
+cambian el diseño de vez en cuando) o te atascas en cualquier paso,
+dime en qué pantalla estás y seguimos desde ahí.
