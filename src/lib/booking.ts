@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
-import { enumerateNights, rangesOverlap } from "@/lib/dates";
+import { enumerateNights, isoDate, rangesOverlap } from "@/lib/dates";
 
 export async function getSettings() {
   const settings = await prisma.settings.upsert({
@@ -46,9 +46,9 @@ export async function computeQuote(checkIn: Date, checkOut: Date, guests: number
   ]);
 
   const rateByMonth = new Map(seasonalRates.map((r) => [r.month, r.pricePerNight]));
-  const rateByDate = new Map(
-    dateRates.map((r) => [r.date.toISOString().slice(0, 10), r.pricePerNight])
-  );
+  const rateByDate = new Map(dateRates.map((r) => [isoDate(r.date), r.pricePerNight]));
+  const minNightsByMonth = new Map(seasonalRates.map((r) => [r.month, r.minNights]));
+  const minNightsByDate = new Map(dateRates.map((r) => [isoDate(r.date), r.minNights]));
   const nightDates = enumerateNights(checkIn, checkOut);
   const nights = nightDates.length;
 
@@ -63,6 +63,14 @@ export async function computeQuote(checkIn: Date, checkOut: Date, guests: number
   const lodging = baseLodging * (1 + surchargePercent / 100);
   const total = lodging + settings.cleaningFee;
 
+  // La estancia mínima depende del día de entrada, no de los días
+  // intermedios: un hueco de una sola noche solo se puede vender si esa
+  // fecha de entrada concreta (o su mes) tiene una estancia mínima menor.
+  const checkInIso = isoDate(checkIn);
+  const checkInMonth = Number(checkInIso.slice(5, 7));
+  const minNights =
+    minNightsByDate.get(checkInIso) ?? minNightsByMonth.get(checkInMonth) ?? settings.minNights;
+
   return {
     nights,
     averagePricePerNight: nights > 0 ? baseLodging / nights : settings.pricePerNight,
@@ -70,7 +78,7 @@ export async function computeQuote(checkIn: Date, checkOut: Date, guests: number
     surchargePercent,
     cleaningFee: settings.cleaningFee,
     currency: settings.currency,
-    minNights: settings.minNights,
+    minNights,
     baseGuests: settings.baseGuests,
     maxGuests: settings.maxGuests,
     total,
@@ -89,6 +97,6 @@ export async function getStartingPrice() {
     settings.pricePerNight,
     ...seasonalRates.map((r) => r.pricePerNight),
     ...dateRates.map((r) => r.pricePerNight),
-  ];
+  ].filter((r): r is number => r !== null);
   return Math.min(...rates);
 }

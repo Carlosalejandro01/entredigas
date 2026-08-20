@@ -44,9 +44,9 @@ type Photo = {
   createdAt: string;
 };
 
-type SeasonalRate = { month: number; pricePerNight: number };
+type SeasonalRate = { month: number; pricePerNight: number | null; minNights: number | null };
 type GuestRate = { guests: number; percent: number };
-type DateRate = { date: string; pricePerNight: number };
+type DateRate = { date: string; pricePerNight: number | null; minNights: number | null };
 type Amenity = { id: string; label: string; order: number };
 
 const MONTH_NAMES = [
@@ -1090,6 +1090,7 @@ function PricingTab({
   const [pricePerNight, setPricePerNight] = useState(0);
   const [cleaningFee, setCleaningFee] = useState(0);
   const [months, setMonths] = useState<(number | "")[]>(Array(12).fill(""));
+  const [monthsMinNights, setMonthsMinNights] = useState<(number | "")[]>(Array(12).fill(""));
   const [guestPercents, setGuestPercents] = useState<Record<number, number>>({});
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -1104,9 +1105,11 @@ function PricingTab({
 
   useEffect(() => {
     if (seasonalRates) {
-      const byMonth = new Map(seasonalRates.map((r) => [r.month, r.pricePerNight]));
+      const priceByMonth = new Map(seasonalRates.map((r) => [r.month, r.pricePerNight]));
+      const minNightsByMonth = new Map(seasonalRates.map((r) => [r.month, r.minNights]));
       // eslint-disable-next-line react-hooks/set-state-in-effect -- sync freshly-loaded rates into the editable form
-      setMonths(Array.from({ length: 12 }, (_, i) => byMonth.get(i + 1) ?? ""));
+      setMonths(Array.from({ length: 12 }, (_, i) => priceByMonth.get(i + 1) ?? ""));
+      setMonthsMinNights(Array.from({ length: 12 }, (_, i) => minNightsByMonth.get(i + 1) ?? ""));
     }
   }, [seasonalRates]);
 
@@ -1143,6 +1146,7 @@ function PricingTab({
           seasonalRates: months.map((price, i) => ({
             month: i + 1,
             pricePerNight: price === "" ? null : Number(price),
+            minNights: monthsMinNights[i] === "" ? null : Number(monthsMinNights[i]),
           })),
           guestRates: Object.entries(guestPercents).map(([guests, percent]) => ({
             guests: Number(guests),
@@ -1203,28 +1207,46 @@ function PricingTab({
       </div>
 
       <div className="rounded-xl border border-stone-200 bg-white p-6">
-        <p className="font-display text-lg text-stone-900">Precios por temporada</p>
+        <p className="font-display text-lg text-stone-900">Precios y estancia mínima por temporada</p>
         <p className="mt-1 text-xs text-stone-500">
-          Fija un precio distinto por mes (por ejemplo, más caro en julio y
-          agosto). Deja el campo vacío para usar el precio base.
+          Fija un precio y/o una estancia mínima distinta por mes (por
+          ejemplo, más caro y con más noches mínimas en julio y agosto). Deja
+          los campos vacíos para usar el precio y la estancia mínima base.
         </p>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {MONTH_NAMES.map((name, i) => (
-            <label key={name} className="grid gap-1 text-sm text-stone-700">
-              {name}
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                placeholder={`${pricePerNight}`}
-                value={months[i]}
-                onChange={(e) => {
-                  const value = e.target.value === "" ? "" : Number(e.target.value);
-                  setMonths((m) => m.map((v, idx) => (idx === i ? value : v)));
-                }}
-                className="rounded-lg border border-stone-200 px-3 py-2"
-              />
-            </label>
+            <div key={name} className="grid gap-1.5 rounded-lg border border-stone-200 p-2.5">
+              <p className="text-sm font-medium text-stone-800">{name}</p>
+              <label className="grid gap-0.5 text-xs text-stone-600">
+                Precio (€)
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder={`${pricePerNight}`}
+                  value={months[i]}
+                  onChange={(e) => {
+                    const value = e.target.value === "" ? "" : Number(e.target.value);
+                    setMonths((m) => m.map((v, idx) => (idx === i ? value : v)));
+                  }}
+                  className="rounded-lg border border-stone-200 px-2.5 py-1.5"
+                />
+              </label>
+              <label className="grid gap-0.5 text-xs text-stone-600">
+                Estancia mínima
+                <input
+                  type="number"
+                  min={1}
+                  placeholder={`${settings.minNights}`}
+                  value={monthsMinNights[i]}
+                  onChange={(e) => {
+                    const value = e.target.value === "" ? "" : Number(e.target.value);
+                    setMonthsMinNights((m) => m.map((v, idx) => (idx === i ? value : v)));
+                  }}
+                  className="rounded-lg border border-stone-200 px-2.5 py-1.5"
+                />
+              </label>
+            </div>
           ))}
         </div>
       </div>
@@ -1298,10 +1320,18 @@ function DateRatesEditor({
 }) {
   const [selected, setSelected] = useState<Date | undefined>();
   const [price, setPrice] = useState("");
+  const [minNights, setMinNights] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const rateByIso = new Map(dateRates.map((r) => [r.date, r.pricePerNight]));
+  const [rangeStart, setRangeStart] = useState("");
+  const [rangeEnd, setRangeEnd] = useState("");
+  const [rangeMinNights, setRangeMinNights] = useState("");
+  const [rangePrice, setRangePrice] = useState("");
+  const [rangeSubmitting, setRangeSubmitting] = useState(false);
+  const [rangeError, setRangeError] = useState<string | null>(null);
+
+  const rateByIso = new Map(dateRates.map((r) => [r.date, r]));
 
   function isoOf(d: Date) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
@@ -1312,22 +1342,28 @@ function DateRatesEditor({
   function handleSelectDay(day: Date | undefined) {
     setSelected(day);
     setError(null);
-    setPrice(day && rateByIso.has(isoOf(day)) ? String(rateByIso.get(isoOf(day))) : "");
+    const existing = day ? rateByIso.get(isoOf(day)) : undefined;
+    setPrice(existing?.pricePerNight != null ? String(existing.pricePerNight) : "");
+    setMinNights(existing?.minNights != null ? String(existing.minNights) : "");
   }
 
   async function handleSave() {
-    if (!selected || price === "") return;
+    if (!selected || (price === "" && minNights === "")) return;
     setSubmitting(true);
     setError(null);
     try {
       const res = await fetch("/api/admin/pricing", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: isoOf(selected), pricePerNight: Number(price) }),
+        body: JSON.stringify({
+          date: isoOf(selected),
+          pricePerNight: price === "" ? null : Number(price),
+          minNights: minNights === "" ? null : Number(minNights),
+        }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al guardar el precio.");
-      onNotice("Precio del día guardado.");
+      if (!res.ok) throw new Error(data.error || "Error al guardar.");
+      onNotice("Día guardado.");
       onChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error inesperado.");
@@ -1343,117 +1379,235 @@ function DateRatesEditor({
       body: JSON.stringify({ date: dateIso }),
     });
     if (res.ok) {
-      onNotice("Precio especial eliminado.");
+      onNotice("Regla del día eliminada.");
       if (selected && isoOf(selected) === dateIso) {
         setSelected(undefined);
         setPrice("");
+        setMinNights("");
       }
       onChanged();
     }
   }
 
+  async function handleApplyRange(e: React.FormEvent) {
+    e.preventDefault();
+    if (!rangeStart || !rangeEnd || (rangeMinNights === "" && rangePrice === "")) return;
+    setRangeSubmitting(true);
+    setRangeError(null);
+    try {
+      const res = await fetch("/api/admin/pricing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startDate: rangeStart,
+          endDate: rangeEnd,
+          pricePerNight: rangePrice === "" ? undefined : Number(rangePrice),
+          minNights: rangeMinNights === "" ? undefined : Number(rangeMinNights),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al aplicar el rango.");
+      onNotice("Rango de fechas aplicado.");
+      setRangeStart("");
+      setRangeEnd("");
+      setRangeMinNights("");
+      setRangePrice("");
+      onChanged();
+    } catch (err) {
+      setRangeError(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setRangeSubmitting(false);
+    }
+  }
+
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-6">
-      <p className="font-display text-lg text-stone-900">Precios por día concreto</p>
-      <p className="mt-1 text-xs text-stone-500">
-        Para fechas puntuales (un puente, una feria, Nochevieja…) que quieras
-        cobrar distinto al resto del mes. Este precio manda sobre el precio de
-        temporada y el precio base.
-      </p>
-      <div className="mt-4 grid gap-6 sm:grid-cols-[auto_1fr]">
-        <div className="overflow-x-auto">
-          <DayPicker
-            mode="single"
-            locale={es}
-            selected={selected}
-            onSelect={handleSelectDay}
-            modifiers={{ priced: (date) => rateByIso.has(isoOf(date)) }}
-            modifiersClassNames={{ priced: "!bg-terracotta-500/15 !font-semibold" }}
-            className="!m-0"
-          />
-        </div>
-        <div>
-          {selected ? (
-            <div className="grid gap-3">
-              <p className="text-sm font-medium text-stone-800">
-                {selected.toLocaleDateString("es-ES", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
-              <label className="grid gap-1 text-sm text-stone-700">
-                Precio esa noche (€)
-                <input
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  placeholder={`${fallbackPrice}`}
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  className="w-40 rounded-lg border border-stone-200 px-3 py-2"
-                />
-              </label>
-              {error && <p className="text-sm text-terracotta-600">{error}</p>}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={submitting || price === ""}
-                  className="rounded-full bg-stone-900 px-4 py-2 text-xs font-semibold text-white hover:bg-stone-800 disabled:opacity-60"
-                >
-                  {submitting ? "Guardando…" : "Guardar precio"}
-                </button>
-                {rateByIso.has(isoOf(selected)) && (
+    <div className="grid gap-6">
+      <div className="rounded-xl border border-stone-200 bg-white p-6">
+        <p className="font-display text-lg text-stone-900">Precio y estancia mínima por día concreto</p>
+        <p className="mt-1 text-xs text-stone-500">
+          Para fechas puntuales (un puente, una feria, Nochevieja, o una
+          noche suelta que se ha quedado libre entre dos reservas) que
+          quieras tratar distinto al resto del mes. Esta regla manda sobre la
+          de temporada y la base. Puedes rellenar solo el precio, solo la
+          estancia mínima, o los dos.
+        </p>
+        <div className="mt-4 grid gap-6 sm:grid-cols-[auto_1fr]">
+          <div className="overflow-x-auto">
+            <DayPicker
+              mode="single"
+              locale={es}
+              selected={selected}
+              onSelect={handleSelectDay}
+              modifiers={{ priced: (date) => rateByIso.has(isoOf(date)) }}
+              modifiersClassNames={{ priced: "!bg-terracotta-500/15 !font-semibold" }}
+              className="!m-0"
+            />
+          </div>
+          <div>
+            {selected ? (
+              <div className="grid gap-3">
+                <p className="text-sm font-medium text-stone-800">
+                  {selected.toLocaleDateString("es-ES", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="grid gap-1 text-sm text-stone-700">
+                    Precio esa noche (€)
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      placeholder={`${fallbackPrice}`}
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      className="w-full rounded-lg border border-stone-200 px-3 py-2"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-sm text-stone-700">
+                    Estancia mínima
+                    <input
+                      type="number"
+                      min={1}
+                      placeholder="p. ej. 1"
+                      value={minNights}
+                      onChange={(e) => setMinNights(e.target.value)}
+                      className="w-full rounded-lg border border-stone-200 px-3 py-2"
+                    />
+                  </label>
+                </div>
+                {error && <p className="text-sm text-terracotta-600">{error}</p>}
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => handleRemove(isoOf(selected))}
-                    className="rounded-full px-4 py-2 text-xs font-semibold text-terracotta-600 hover:bg-terracotta-500/10"
+                    onClick={handleSave}
+                    disabled={submitting || (price === "" && minNights === "")}
+                    className="rounded-full bg-stone-900 px-4 py-2 text-xs font-semibold text-white hover:bg-stone-800 disabled:opacity-60"
                   >
-                    Quitar precio especial
+                    {submitting ? "Guardando…" : "Guardar día"}
                   </button>
-                )}
+                  {rateByIso.has(isoOf(selected)) && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(isoOf(selected))}
+                      className="rounded-full px-4 py-2 text-xs font-semibold text-terracotta-600 hover:bg-terracotta-500/10"
+                    >
+                      Quitar regla del día
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ) : (
-            <p className="text-sm text-stone-500">
-              Elige un día en el calendario para ponerle un precio especial.
-            </p>
-          )}
-
-          {dateRates.length > 0 && (
-            <div className="mt-6 grid gap-1.5 border-t border-stone-200 pt-4 text-sm">
-              <p className="text-xs font-semibold tracking-wide text-stone-500 uppercase">
-                Días con precio especial
+            ) : (
+              <p className="text-sm text-stone-500">
+                Elige un día en el calendario para ponerle un precio o una
+                estancia mínima especial.
               </p>
-              {dateRates
-                .slice()
-                .sort((a, b) => a.date.localeCompare(b.date))
-                .map((r) => (
-                  <div key={r.date} className="flex items-center justify-between">
-                    <span className="text-stone-700">
-                      {new Date(`${r.date}T00:00:00`).toLocaleDateString("es-ES", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className="font-medium text-stone-900">{r.pricePerNight} €</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemove(r.date)}
-                        className="text-xs text-terracotta-600 hover:underline"
-                      >
-                        Quitar
-                      </button>
-                    </span>
-                  </div>
-                ))}
-            </div>
-          )}
+            )}
+
+            {dateRates.length > 0 && (
+              <div className="mt-6 grid gap-1.5 border-t border-stone-200 pt-4 text-sm">
+                <p className="text-xs font-semibold tracking-wide text-stone-500 uppercase">
+                  Días con regla especial
+                </p>
+                {dateRates
+                  .slice()
+                  .sort((a, b) => a.date.localeCompare(b.date))
+                  .map((r) => (
+                    <div key={r.date} className="flex items-center justify-between">
+                      <span className="text-stone-700">
+                        {new Date(`${r.date}T00:00:00`).toLocaleDateString("es-ES", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium text-stone-900">
+                          {r.pricePerNight != null && `${r.pricePerNight} €`}
+                          {r.pricePerNight != null && r.minNights != null && " · "}
+                          {r.minNights != null && `mín. ${r.minNights} noche${r.minNights === 1 ? "" : "s"}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemove(r.date)}
+                          className="text-xs text-terracotta-600 hover:underline"
+                        >
+                          Quitar
+                        </button>
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      <form
+        onSubmit={handleApplyRange}
+        className="rounded-xl border border-stone-200 bg-white p-6"
+      >
+        <p className="font-display text-lg text-stone-900">Aplicar a una semana o rango de fechas</p>
+        <p className="mt-1 text-xs text-stone-500">
+          Útil para fijar la estancia mínima de una semana o un puente
+          concreto de una sola vez, en lugar de día a día.
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <label className="grid gap-1 text-sm text-stone-700">
+            Desde
+            <input
+              type="date"
+              required
+              value={rangeStart}
+              onChange={(e) => setRangeStart(e.target.value)}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+          <label className="grid gap-1 text-sm text-stone-700">
+            Hasta
+            <input
+              type="date"
+              required
+              value={rangeEnd}
+              onChange={(e) => setRangeEnd(e.target.value)}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+          <label className="grid gap-1 text-sm text-stone-700">
+            Estancia mínima
+            <input
+              type="number"
+              min={1}
+              placeholder="opcional"
+              value={rangeMinNights}
+              onChange={(e) => setRangeMinNights(e.target.value)}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+          <label className="grid gap-1 text-sm text-stone-700">
+            Precio / noche (€)
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              placeholder="opcional"
+              value={rangePrice}
+              onChange={(e) => setRangePrice(e.target.value)}
+              className="rounded-lg border border-stone-200 px-3 py-2"
+            />
+          </label>
+        </div>
+        {rangeError && <p className="mt-2 text-sm text-terracotta-600">{rangeError}</p>}
+        <button
+          type="submit"
+          disabled={rangeSubmitting || (rangeMinNights === "" && rangePrice === "")}
+          className="mt-4 rounded-full bg-stone-900 px-4 py-2 text-xs font-semibold text-white hover:bg-stone-800 disabled:opacity-60"
+        >
+          {rangeSubmitting ? "Aplicando…" : "Aplicar al rango"}
+        </button>
+      </form>
     </div>
   );
 }

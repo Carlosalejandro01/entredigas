@@ -71,11 +71,12 @@ model Settings {
   updatedAt       DateTime @updatedAt
 }
 
-// Precio por noche para un mes concreto (1 = enero ... 12 = diciembre).
-// Si un mes no tiene fila, se usa Settings.pricePerNight.
+// Precio y/o estancia mínima para un mes concreto (1 = enero ... 12 = diciembre).
+// Si un mes no tiene fila (o el campo está vacío), se usa Settings.pricePerNight / Settings.minNights.
 model SeasonalRate {
-  month         Int   @id
-  pricePerNight Float
+  month         Int    @id
+  pricePerNight Float?
+  minNights     Int?
 }
 
 // Recargo porcentual sobre el precio de las noches (no sobre la limpieza)
@@ -86,11 +87,14 @@ model GuestRate {
   percent Float
 }
 
-// Precio por noche para una fecha concreta (anula el precio de temporada
-// y el precio base para esa noche exacta). Prioridad: DateRate > SeasonalRate > Settings.pricePerNight.
+// Precio y/o estancia mínima para una fecha concreta (anula el precio y la
+// estancia mínima de temporada para esa noche exacta). La estancia mínima se
+// aplica según la fecha de entrada: DateRate > SeasonalRate (del mes de
+// entrada) > Settings. El precio por noche sigue la misma prioridad.
 model DateRate {
   date          DateTime @id
-  pricePerNight Float
+  pricePerNight Float?
+  minNights     Int?
 }
 
 model Photo {
