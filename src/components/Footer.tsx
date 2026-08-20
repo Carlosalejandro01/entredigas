@@ -84,6 +84,12 @@ export default async function Footer() {
           <Link href="/guia" className="mt-2 block hover:text-white">
             Guía de la zona
           </Link>
+          <Link href="/aviso-legal" className="mt-2 block text-stone-500 hover:text-stone-300">
+            Aviso legal
+          </Link>
+          <Link href="/privacidad" className="mt-2 block text-stone-500 hover:text-stone-300">
+            Privacidad
+          </Link>
           <Link href="/admin" className="mt-2 block text-stone-500 hover:text-stone-300">
             Acceso propietario
           </Link>

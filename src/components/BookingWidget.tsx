@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { DayPicker, type DateRange } from "react-day-picker";
 import { es } from "react-day-picker/locale";
@@ -396,7 +397,12 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
                 </div>
                 <p className="text-xs text-stone-500">
                   Al enviar, las fechas quedan reservadas provisionalmente y te
-                  contactaremos para confirmar el pago.
+                  contactaremos para confirmar el pago. Tus datos se tratan
+                  según nuestra{" "}
+                  <Link href="/privacidad" className="underline hover:text-terracotta-600">
+                    Política de Privacidad
+                  </Link>
+                  .
                 </p>
               </form>
             )}
