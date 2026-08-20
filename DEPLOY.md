@@ -1,5 +1,9 @@
 # Publicar Entre Vigas en internet — guía muy detallada
 
+<!-- marca de control: si ves esta línea en el commit más reciente de
+     Vercel, el despliegue está usando el código correcto y actualizado -->
+
+
 Vas a hacer 4 cosas, en este orden: **(0)** aprobar el código, **(1)**
 crear una base de datos gratis, **(2)** publicar la web gratis, **(3)**
 conectar Booking.com. Ninguna requiere saber programar. Tiempo total:
