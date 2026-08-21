@@ -3,6 +3,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookingWidget from "@/components/BookingWidget";
+import Gallery from "@/components/Gallery";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/booking";
 import { trackPageView } from "@/lib/analytics";
@@ -298,25 +299,7 @@ export default async function Home() {
             <h2 className="mt-3 font-display text-3xl text-stone-900 sm:text-4xl">
               Cada rincón cuenta una historia
             </h2>
-            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {gallery.map((photo, i) => (
-                <div
-                  key={photo.src}
-                  className={`group relative overflow-hidden rounded-2xl border border-stone-200 ${
-                    i === 0 ? "col-span-2 aspect-[16/10] sm:col-span-2" : "aspect-square"
-                  }`}
-                >
-                  <Image
-                    src={photo.src}
-                    alt={photo.alt}
-                    fill
-                    unoptimized={photo.src.startsWith("/api/")}
-                    sizes={i === 0 ? "(min-width: 640px) 66vw, 100vw" : "(min-width: 640px) 33vw, 50vw"}
-                    className="object-cover transition duration-500 group-hover:scale-105"
-                  />
-                </div>
-              ))}
-            </div>
+            <Gallery photos={gallery} />
           </div>
         </section>
 
