@@ -67,7 +67,7 @@ const DEFAULT_FAQ_ITEMS = [
   {
     question: "¿Hay que pagar una fianza?",
     answer:
-      "No se paga por adelantado: al llegar se hace una recogida de fianza de 100€, que se devuelve íntegra al finalizar la estancia si todo está en orden.",
+      "Sí, una fianza de 100€. Se paga por adelantado mediante Bizum una vez confirmada la reserva, y se devuelve íntegra al finalizar la estancia si todo está en orden.",
   },
 ];
 
