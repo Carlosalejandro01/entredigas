@@ -71,6 +71,16 @@ const DEFAULT_FAQ_ITEMS = [
   },
 ];
 
+const REVIEWS = [
+  {
+    author: "M. Carmen Romero",
+    source: "Google",
+    rating: 5,
+    text: "Apartamento muy céntrico, muy bonito, todo nuevo. Tiene de todo lo que puedas necesitar, el dueño muy amable y siempre ofreciéndose para ayudarnos en lo que pudiésemos necesitar.",
+    dateLabel: "Hace un mes",
+  },
+];
+
 const fallbackGallery = [
   { src: "/gallery/salon-sofa.jpg", alt: "Salón con sofá y vigas de madera a la vista" },
   { src: "/gallery/comedor.jpg", alt: "Mesa de comedor para seis" },
@@ -277,6 +287,55 @@ export default async function Home() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* REVIEWS */}
+        <section id="opiniones" className="mx-auto max-w-6xl px-5 py-20">
+          <p className="text-xs font-semibold tracking-[0.2em] text-terracotta-600 uppercase">
+            Opiniones
+          </p>
+          <h2 className="mt-3 font-display text-3xl text-stone-900 sm:text-4xl">
+            Lo que dicen nuestros huéspedes
+          </h2>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {REVIEWS.map((review, i) => (
+              <div
+                key={i}
+                className="flex flex-col rounded-2xl border border-stone-200 bg-white/70 p-6"
+              >
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <IconStar
+                      key={idx}
+                      fill={idx < review.rating ? "currentColor" : "none"}
+                      className={`h-4 w-4 ${idx < review.rating ? "text-terracotta-500" : "text-stone-300"}`}
+                    />
+                  ))}
+                </div>
+                <p className="mt-4 flex-1 text-sm text-stone-700">“{review.text}”</p>
+                <div className="mt-5 flex items-center justify-between border-t border-stone-100 pt-4">
+                  <div>
+                    <p className="text-sm font-semibold text-stone-900">{review.author}</p>
+                    <p className="text-xs text-stone-500">{review.dateLabel}</p>
+                  </div>
+                  <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600">
+                    {review.source}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          {settings.googleReviewUrl && (
+            <a
+              href={settings.googleReviewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-8 inline-flex items-center gap-1.5 text-sm font-medium text-terracotta-600 hover:text-terracotta-700"
+            >
+              <IconStar className="h-4 w-4" />
+              Ver todas las opiniones en Google →
+            </a>
+          )}
         </section>
 
         {/* BOOKING */}
