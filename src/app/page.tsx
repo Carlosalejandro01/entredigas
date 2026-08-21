@@ -5,7 +5,8 @@ import Footer from "@/components/Footer";
 import BookingWidget from "@/components/BookingWidget";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/booking";
-import { IconCheck, IconMapPin, IconStar, IconUsers } from "@/components/icons";
+import { getSiteUrl } from "@/lib/site-url";
+import { IconCheck, IconMapPin, IconStar, IconTag, IconUsers } from "@/components/icons";
 
 // La portada muestra ajustes, fotos y detalles editables desde el panel de
 // administración: hay que renderizarla en cada visita, nunca cachearla como
@@ -34,6 +35,37 @@ const DEFAULT_AMENITY_LABELS = [
   "Parking propio",
 ];
 
+const DEFAULT_FAQ_ITEMS = [
+  {
+    question: "¿Cómo se confirma la reserva?",
+    answer:
+      "Al enviar el formulario, esas fechas quedan bloqueadas provisionalmente en el calendario para que nadie más pueda reservarlas. Te contactamos enseguida por email o teléfono para confirmar los detalles.",
+  },
+  {
+    question: "¿Hace falta pagar con tarjeta en la web?",
+    answer:
+      "No. La web no pide ningún dato de pago: coordinamos el pago contigo directamente al confirmar tu solicitud.",
+  },
+  {
+    question: "¿Hay parking?",
+    answer: "Sí, el apartamento cuenta con parking propio.",
+  },
+  {
+    question: "¿A qué hora es la entrada y la salida?",
+    answer:
+      "Lo acordamos contigo según tu hora de llegada — escríbenos con antelación y lo cuadramos sin problema.",
+  },
+  {
+    question: "¿Se admiten mascotas?",
+    answer: "Consúltanoslo antes de reservar y te confirmamos.",
+  },
+  {
+    question: "¿Cuál es la política de cancelación?",
+    answer:
+      "Te explicamos las condiciones exactas al confirmar tu reserva, antes de que quede cerrada.",
+  },
+];
+
 const fallbackGallery = [
   { src: "/gallery/salon-sofa.jpg", alt: "Salón con sofá y vigas de madera a la vista" },
   { src: "/gallery/comedor.jpg", alt: "Mesa de comedor para seis" },
@@ -51,7 +83,7 @@ const fallbackGallery = [
 ];
 
 export default async function Home() {
-  const [settings, heroPhoto, galleryPhotos, dbAmenities] = await Promise.all([
+  const [settings, heroPhoto, galleryPhotos, dbAmenities, dbFaqItems] = await Promise.all([
     getSettings(),
     prisma.photo.findFirst({
       where: { section: "hero" },
@@ -64,6 +96,10 @@ export default async function Home() {
       select: { id: true, alt: true },
     }),
     prisma.amenity.findMany({ orderBy: { order: "asc" }, select: { id: true, label: true } }),
+    prisma.faqItem.findMany({
+      orderBy: { order: "asc" },
+      select: { id: true, question: true, answer: true },
+    }),
   ]);
 
   const mapsUrl = settings.googleMapsUrl || FALLBACK_MAPS_URL;
@@ -85,8 +121,45 @@ export default async function Home() {
 
   const amenityLabels = [...DEFAULT_AMENITY_LABELS, ...dbAmenities.map((a) => a.label)];
 
+  // El propio propietario puede añadir más preguntas desde el panel, que se
+  // suman a estas de partida.
+  const faqItems = [...DEFAULT_FAQ_ITEMS, ...dbFaqItems];
+
+  const siteUrl = getSiteUrl();
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    name: "Entre Vigas",
+    description: heroSubtitle,
+    image: `${siteUrl}${heroImageSrc}`,
+    url: siteUrl,
+    telephone: settings.contactPhone,
+    email: settings.contactEmail,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Av. Antonio Sandi, 1",
+      addressLocality: "Santillana del Mar",
+      addressRegion: "Cantabria",
+      postalCode: "39330",
+      addressCountry: "ES",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 43.3897,
+      longitude: -4.1113,
+    },
+    amenityFeature: amenityLabels.map((name) => ({
+      "@type": "LocationFeatureSpecification",
+      name,
+    })),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <Header />
       <main className="flex-1">
         {/* HERO */}
@@ -214,6 +287,37 @@ export default async function Home() {
             se bloquean automáticamente en cuanto se confirman, para que
             nunca coincidan dos huéspedes.
           </p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="flex items-start gap-3 rounded-xl border border-stone-200 bg-white/70 p-4">
+              <IconTag className="h-5 w-5 shrink-0 text-terracotta-600" />
+              <div>
+                <p className="text-sm font-semibold text-stone-900">Sin comisiones</p>
+                <p className="mt-0.5 text-xs text-stone-600">
+                  Reservando aquí, no pagas de más por intermediarios.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-xl border border-stone-200 bg-white/70 p-4">
+              <IconCheck className="h-5 w-5 shrink-0 text-terracotta-600" />
+              <div>
+                <p className="text-sm font-semibold text-stone-900">Fechas siempre reales</p>
+                <p className="mt-0.5 text-xs text-stone-600">
+                  El calendario se bloquea al instante, también si reservas por Booking.com.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-xl border border-stone-200 bg-white/70 p-4">
+              <IconStar className="h-5 w-5 shrink-0 text-terracotta-600" />
+              <div>
+                <p className="text-sm font-semibold text-stone-900">Trato directo</p>
+                <p className="mt-0.5 text-xs text-stone-600">
+                  Hablas con nosotros, sin centralitas ni bots.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="mt-10">
             <BookingWidget maxGuests={settings.maxGuests} />
           </div>
@@ -289,6 +393,27 @@ export default async function Home() {
                 src="https://www.openstreetmap.org/export/embed.html?bbox=-4.1230%2C43.3840%2C-4.0990%2C43.3960&layer=mapnik&marker=43.3897%2C-4.1113"
               />
             </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="mx-auto max-w-6xl px-5 py-20">
+          <p className="text-xs font-semibold tracking-[0.2em] text-terracotta-600 uppercase">
+            Antes de reservar
+          </p>
+          <h2 className="mt-3 font-display text-3xl text-stone-900 sm:text-4xl">
+            Preguntas frecuentes
+          </h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {faqItems.map((item) => (
+              <div
+                key={item.question}
+                className="rounded-2xl border border-stone-200 bg-white/70 p-5"
+              >
+                <p className="font-display text-base text-stone-900">{item.question}</p>
+                <p className="mt-2 text-sm text-stone-700">{item.answer}</p>
+              </div>
+            ))}
           </div>
         </section>
       </main>

@@ -125,3 +125,12 @@ model RateLimitEvent {
 
   @@index([key, createdAt])
 }
+
+// Preguntas frecuentes que se muestran en la portada, editables desde el
+// panel de administración.
+model FaqItem {
+  id       String @id @default(cuid())
+  question String
+  answer   String
+  order    Int    @default(0)
+}

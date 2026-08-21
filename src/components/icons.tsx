@@ -164,3 +164,12 @@ export function IconStar(props: SVGProps<SVGSVGElement>) {
     </Icon>
   );
 }
+
+export function IconTag(props: SVGProps<SVGSVGElement>) {
+  return (
+    <Icon {...props}>
+      <path d="M12.6 3H5a2 2 0 0 0-2 2v7.6a2 2 0 0 0 .59 1.41l8.4 8.4a2 2 0 0 0 2.82 0l7-7a2 2 0 0 0 0-2.82l-8.4-8.4A2 2 0 0 0 12.6 3z" />
+      <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none" />
+    </Icon>
+  );
+}

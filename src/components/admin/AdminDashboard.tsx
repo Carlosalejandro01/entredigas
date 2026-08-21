@@ -49,6 +49,7 @@ type SeasonalRate = { month: number; pricePerNight: number | null; minNights: nu
 type GuestRate = { guests: number; percent: number };
 type DateRate = { date: string; pricePerNight: number | null; minNights: number | null };
 type Amenity = { id: string; label: string; order: number };
+type FaqItem = { id: string; question: string; answer: string; order: number };
 
 const MONTH_NAMES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -72,7 +73,7 @@ type ExternalCalendar = {
   lastSyncCount: number | null;
 };
 
-type Tab = "reservas" | "bloqueos" | "sync" | "fotos" | "precios" | "detalles" | "ajustes";
+type Tab = "reservas" | "bloqueos" | "sync" | "fotos" | "precios" | "detalles" | "faq" | "ajustes";
 
 function fmtDate(s: string) {
   return new Intl.DateTimeFormat("es-ES", {
@@ -110,10 +111,11 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [guestRates, setGuestRates] = useState<GuestRate[] | null>(null);
   const [dateRates, setDateRates] = useState<DateRate[] | null>(null);
   const [amenities, setAmenities] = useState<Amenity[] | null>(null);
+  const [faqItems, setFaqItems] = useState<FaqItem[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   async function loadAll() {
-    const [b, s, bl, ic, ph, pr, am] = await Promise.all([
+    const [b, s, bl, ic, ph, pr, am, fq] = await Promise.all([
       fetch("/api/admin/bookings").then((r) => r.json()),
       fetch("/api/admin/settings").then((r) => r.json()),
       fetch("/api/admin/blocked").then((r) => r.json()),
@@ -121,6 +123,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       fetch("/api/admin/photos").then((r) => r.json()),
       fetch("/api/admin/pricing").then((r) => r.json()),
       fetch("/api/admin/amenities").then((r) => r.json()),
+      fetch("/api/admin/faq").then((r) => r.json()),
     ]);
     setBookings(b.bookings ?? []);
     setSettings(s.settings ?? null);
@@ -132,6 +135,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     setGuestRates(pr.guestRates ?? []);
     setDateRates(pr.dateRates ?? []);
     setAmenities(am.amenities ?? []);
+    setFaqItems(fq.faqItems ?? []);
   }
 
   useEffect(() => {
@@ -197,6 +201,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               ["fotos", "Fotos"],
               ["precios", "Precios"],
               ["detalles", "Detalles del apartamento"],
+              ["faq", "Preguntas frecuentes"],
               ["ajustes", "Contenido y ajustes"],
             ] as [Tab, string][]
           ).map(([id, label]) => (
@@ -255,6 +260,9 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         )}
         {tab === "detalles" && (
           <DetallesTab amenities={amenities} onChanged={loadAll} onNotice={flash} />
+        )}
+        {tab === "faq" && (
+          <FaqTab faqItems={faqItems} onChanged={loadAll} onNotice={flash} />
         )}
         {tab === "ajustes" && (
           <SettingsTab settings={settings} onChanged={loadAll} onNotice={flash} />
@@ -1821,6 +1829,195 @@ function DetallesTab({
                 <button
                   type="button"
                   onClick={() => handleDelete(a.id)}
+                  className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-terracotta-600 hover:bg-terracotta-500/10"
+                >
+                  Eliminar
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FaqTab({
+  faqItems,
+  onChanged,
+  onNotice,
+}: {
+  faqItems: FaqItem[] | null;
+  onChanged: () => void;
+  onNotice: (msg: string) => void;
+}) {
+  const [newQuestion, setNewQuestion] = useState("");
+  const [newAnswer, setNewAnswer] = useState("");
+  const [drafts, setDrafts] = useState<Record<string, { question: string; answer: string }>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!faqItems) return <p className="text-stone-500">Cargando preguntas frecuentes…</p>;
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newQuestion.trim() || !newAnswer.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/faq", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: newQuestion.trim(), answer: newAnswer.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al añadir.");
+      setNewQuestion("");
+      setNewAnswer("");
+      onNotice("Pregunta añadida.");
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error inesperado.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleSaveEdit(id: string) {
+    const draft = drafts[id];
+    if (!draft) return;
+    const res = await fetch("/api/admin/faq", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, question: draft.question.trim(), answer: draft.answer.trim() }),
+    });
+    if (res.ok) {
+      onNotice("Pregunta actualizada.");
+      onChanged();
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("¿Eliminar esta pregunta?")) return;
+    const res = await fetch("/api/admin/faq", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      onNotice("Pregunta eliminada.");
+      onChanged();
+    }
+  }
+
+  async function handleMove(id: string, direction: -1 | 1) {
+    const index = faqItems!.findIndex((f) => f.id === id);
+    const target = faqItems![index + direction];
+    if (!target) return;
+    const current = faqItems![index];
+    await Promise.all([
+      fetch("/api/admin/faq", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: current.id, order: target.order }),
+      }),
+      fetch("/api/admin/faq", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: target.id, order: current.order }),
+      }),
+    ]);
+    onChanged();
+  }
+
+  return (
+    <div className="grid max-w-2xl gap-6">
+      <div className="rounded-xl border border-stone-200 bg-white p-6">
+        <p className="font-display text-lg text-stone-900">Preguntas frecuentes</p>
+        <p className="mt-1 text-xs text-stone-500">
+          Se muestran en la portada, antes del formulario de reserva. Útil
+          para horarios de entrada y salida, mascotas, aparcamiento,
+          cancelaciones… todo lo que te suelan preguntar antes de reservar.
+        </p>
+
+        <form onSubmit={handleAdd} className="mt-4 grid gap-2">
+          <input
+            value={newQuestion}
+            onChange={(e) => setNewQuestion(e.target.value)}
+            placeholder="Pregunta, ej: ¿A qué hora es el check-in?"
+            className="rounded-lg border border-stone-200 px-3 py-2 text-sm"
+          />
+          <textarea
+            value={newAnswer}
+            onChange={(e) => setNewAnswer(e.target.value)}
+            placeholder="Respuesta"
+            rows={2}
+            className="resize-none rounded-lg border border-stone-200 px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={submitting || !newQuestion.trim() || !newAnswer.trim()}
+            className="w-fit rounded-full bg-terracotta-500 px-4 py-2 text-sm font-semibold text-white hover:bg-terracotta-600 disabled:opacity-60"
+          >
+            Añadir pregunta
+          </button>
+        </form>
+        {error && <p className="mt-2 text-sm text-terracotta-600">{error}</p>}
+
+        <div className="mt-5 grid gap-2">
+          {faqItems.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-stone-300 p-4 text-center text-sm text-stone-500">
+              Todavía no has añadido ninguna pregunta frecuente.
+            </p>
+          ) : (
+            faqItems.map((f, i) => (
+              <div key={f.id} className="flex items-start gap-2 rounded-lg border border-stone-200 p-2.5">
+                <div className="mt-1 flex flex-col">
+                  <button
+                    type="button"
+                    disabled={i === 0}
+                    onClick={() => handleMove(f.id, -1)}
+                    className="px-1 text-xs text-stone-400 hover:text-stone-700 disabled:opacity-30"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    disabled={i === faqItems.length - 1}
+                    onClick={() => handleMove(f.id, 1)}
+                    className="px-1 text-xs text-stone-400 hover:text-stone-700 disabled:opacity-30"
+                  >
+                    ▼
+                  </button>
+                </div>
+                <div className="grid flex-1 gap-1.5">
+                  <input
+                    value={drafts[f.id]?.question ?? f.question}
+                    onChange={(e) =>
+                      setDrafts((d) => ({
+                        ...d,
+                        [f.id]: { question: e.target.value, answer: d[f.id]?.answer ?? f.answer },
+                      }))
+                    }
+                    onBlur={() => drafts[f.id] !== undefined && handleSaveEdit(f.id)}
+                    className="rounded-lg border border-stone-200 px-3 py-1.5 text-sm font-medium"
+                  />
+                  <textarea
+                    value={drafts[f.id]?.answer ?? f.answer}
+                    onChange={(e) =>
+                      setDrafts((d) => ({
+                        ...d,
+                        [f.id]: { question: d[f.id]?.question ?? f.question, answer: e.target.value },
+                      }))
+                    }
+                    onBlur={() => drafts[f.id] !== undefined && handleSaveEdit(f.id)}
+                    rows={2}
+                    className="resize-none rounded-lg border border-stone-200 px-3 py-1.5 text-sm"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(f.id)}
                   className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold text-terracotta-600 hover:bg-terracotta-500/10"
                 >
                   Eliminar
