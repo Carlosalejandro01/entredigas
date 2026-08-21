@@ -79,6 +79,38 @@ const REVIEWS = [
     text: "Apartamento muy céntrico, muy bonito, todo nuevo. Tiene de todo lo que puedas necesitar, el dueño muy amable y siempre ofreciéndose para ayudarnos en lo que pudiésemos necesitar.",
     dateLabel: "Hace un mes",
   },
+  {
+    author: "Luca",
+    source: "Booking.com",
+    rating: 5,
+    title: "Excepcional",
+    text: "La casa es espaciosa y equipada con todas las comodidades. Limpieza impecable. Ubicación céntrica. Plaza de aparcamiento muy cómoda. Propietario muy amable y servicial.",
+    dateLabel: "Italia · 21 de julio de 2026",
+  },
+  {
+    author: "Ana",
+    source: "Booking.com",
+    rating: 5,
+    title: "Apartamento precioso",
+    text: "Precioso apartamento en el centro de Santillana. Recién reformado con todo a estrenar. Tiene plaza de aparcamiento a la puerta, lo que es un lujo allí. El dueño, súper amable y dispuesto a ayudarnos en todo lo que necesitamos.",
+    dateLabel: "España · 13 de julio de 2026",
+  },
+  {
+    author: "Gonzalez",
+    source: "Booking.com",
+    rating: 5,
+    title: "Excepcional",
+    text: "Apartamento nuevo y muy bien situado. Hemos estado muy a gusto. Muy amables Carlos y su madre, siempre atentos a que no nos faltara nada.",
+    dateLabel: "España · 27 de julio de 2026",
+  },
+  {
+    author: "Beatriz",
+    source: "Booking.com",
+    rating: 5,
+    title: "Una elección de 10.",
+    text: "El apartamento es perfecto, la ubicación en Santillana es fenomenal. La limpieza, el espacio, el equipamiento y la atención son de 10.",
+    dateLabel: "España · 18 de agosto de 2026",
+  },
 ];
 
 const fallbackGallery = [
@@ -312,7 +344,10 @@ export default async function Home() {
                     />
                   ))}
                 </div>
-                <p className="mt-4 flex-1 text-sm text-stone-700">“{review.text}”</p>
+                {review.title && (
+                  <p className="mt-3 font-display text-base text-stone-900">{review.title}</p>
+                )}
+                <p className="mt-2 flex-1 text-sm text-stone-700">“{review.text}”</p>
                 <div className="mt-5 flex items-center justify-between border-t border-stone-100 pt-4">
                   <div>
                     <p className="text-sm font-semibold text-stone-900">{review.author}</p>
