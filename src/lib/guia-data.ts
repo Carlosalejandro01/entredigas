@@ -749,6 +749,17 @@ export const actividadesDestacadas: Actividad[] = [
     contacto: "santandercrossfit@outlook.es",
   },
   {
+    nombre: "Trave Sea — Alquiler de Embarcaciones",
+    lugar: "Bahía de Santander",
+    km: "28 km",
+    tiempo: "30 min",
+    top: true,
+    tags: ["Alquiler de embarcaciones", "Rutas por la bahía", "Sin necesidad de titulación"],
+    descripcion:
+      "Alquiler de embarcaciones para recorrer la Bahía de Santander a tu ritmo: rutas guiadas, planes gastronómicos y salidas de ocio por el agua, con la Península de la Magdalena y El Sardinero de fondo.",
+    nota: "Consulta rutas, precios y disponibilidad en trave-sea.com.",
+  },
+  {
     nombre: "Motos de agua — Puerto Deportivo de Raos",
     lugar: "Marina del Cantábrico · Polígono de Raos · Santander",
     km: "28 km",
