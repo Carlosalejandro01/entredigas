@@ -64,7 +64,7 @@ export default function GuiaPage() {
           <p className="text-xs font-semibold tracking-[0.2em] text-terracotta-600 uppercase">
             Apartamento Entre Vigas · Santillana del Mar
           </p>
-          <h1 className="mx-auto mt-3 max-w-2xl font-display text-5xl font-black tracking-tight text-stone-900 uppercase sm:text-6xl">
+          <h1 className="mx-auto mt-3 max-w-2xl font-display text-5xl leading-tight font-bold text-stone-900 uppercase sm:text-6xl">
             La guía que le damos a nuestros huéspedes
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-stone-700">
@@ -87,7 +87,7 @@ export default function GuiaPage() {
         {/* ============================= QUÉ VER ============================= */}
         <section id="que-ver" className="mx-auto max-w-6xl scroll-mt-32 px-5 py-16">
           <SectionKicker>Qué ver desde tu puerta</SectionKicker>
-          <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-stone-900 uppercase sm:text-5xl lg:text-6xl">
+          <h2 className="mt-3 font-display text-4xl leading-tight font-bold text-stone-900 uppercase sm:text-5xl lg:text-6xl">
             Treinta lugares, ordenados por distancia real
           </h2>
           <p className="mt-4 max-w-2xl text-stone-700">
@@ -215,7 +215,7 @@ export default function GuiaPage() {
         <section id="donde-comer" className="scroll-mt-32 border-t border-stone-200 bg-stone-50 py-16">
           <div className="mx-auto max-w-6xl px-5">
             <SectionKicker>Dónde comer</SectionKicker>
-            <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-stone-900 uppercase sm:text-5xl lg:text-6xl">
+            <h2 className="mt-3 font-display text-4xl leading-tight font-bold text-stone-900 uppercase sm:text-5xl lg:text-6xl">
               Mis restaurantes favoritos de Cantabria
             </h2>
             <p className="mt-4 max-w-2xl text-stone-700">
@@ -291,7 +291,7 @@ export default function GuiaPage() {
         {/* ============================= PLAYAS ============================= */}
         <section id="playas" className="mx-auto max-w-6xl scroll-mt-32 px-5 py-16">
           <SectionKicker>Playas y chiringuitos</SectionKicker>
-          <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-stone-900 uppercase sm:text-5xl lg:text-6xl">
+          <h2 className="mt-3 font-display text-4xl leading-tight font-bold text-stone-900 uppercase sm:text-5xl lg:text-6xl">
             Diez arenales con encanto, y dónde tomar algo con los pies en la arena
           </h2>
           <p className="mt-4 max-w-2xl text-stone-700">
@@ -345,7 +345,7 @@ export default function GuiaPage() {
         <section id="actividades" className="scroll-mt-32 border-t border-stone-200 bg-stone-50 py-16">
           <div className="mx-auto max-w-6xl px-5">
             <SectionKicker>Actividades y planes al aire libre</SectionKicker>
-            <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-stone-900 uppercase sm:text-5xl lg:text-6xl">
+            <h2 className="mt-3 font-display text-4xl leading-tight font-bold text-stone-900 uppercase sm:text-5xl lg:text-6xl">
               Surf, pádel, CrossFit, caballos y motos de agua
             </h2>
             <p className="mt-4 max-w-2xl text-stone-700">

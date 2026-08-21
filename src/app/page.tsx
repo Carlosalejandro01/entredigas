@@ -220,7 +220,7 @@ export default async function Home() {
                 <IconMapPin className="h-3.5 w-3.5" />
                 Santillana del Mar, Cantabria
               </p>
-              <h1 className="mt-6 font-display text-5xl leading-[0.95] font-black tracking-tight text-stone-900 uppercase sm:text-6xl lg:text-7xl">
+              <h1 className="mt-6 font-display text-5xl leading-[1.1] font-bold text-stone-900 uppercase sm:text-6xl lg:text-7xl">
                 {heroTitle}
               </h1>
               <p className="mt-6 max-w-xl text-lg whitespace-pre-line text-stone-700">
@@ -263,7 +263,7 @@ export default async function Home() {
               <p className="text-xs font-semibold tracking-[0.2em] text-terracotta-600 uppercase">
                 El apartamento
               </p>
-              <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-stone-900 uppercase sm:text-5xl lg:text-6xl">
+              <h2 className="mt-3 font-display text-4xl leading-tight font-bold text-stone-900 uppercase sm:text-5xl lg:text-6xl">
                 Cómodo, práctico y bien equipado
               </h2>
               {aboutText.split("\n\n").map((paragraph, i) => (
@@ -296,7 +296,7 @@ export default async function Home() {
             <p className="text-xs font-semibold tracking-[0.2em] text-terracotta-600 uppercase">
               Galería
             </p>
-            <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-stone-900 uppercase sm:text-5xl lg:text-6xl">
+            <h2 className="mt-3 font-display text-4xl leading-tight font-bold text-stone-900 uppercase sm:text-5xl lg:text-6xl">
               Cada rincón cuenta una historia
             </h2>
             <Gallery photos={gallery} />
@@ -308,7 +308,7 @@ export default async function Home() {
           <p className="text-xs font-semibold tracking-[0.2em] text-terracotta-600 uppercase">
             Opiniones
           </p>
-          <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-stone-900 uppercase sm:text-5xl lg:text-6xl">
+          <h2 className="mt-3 font-display text-4xl leading-tight font-bold text-stone-900 uppercase sm:text-5xl lg:text-6xl">
             Lo que dicen nuestros huéspedes
           </h2>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -360,7 +360,7 @@ export default async function Home() {
           <p className="text-xs font-semibold tracking-[0.2em] text-terracotta-600 uppercase">
             Reserva directa
           </p>
-          <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-stone-900 uppercase sm:text-5xl lg:text-6xl">
+          <h2 className="mt-3 font-display text-4xl leading-tight font-bold text-stone-900 uppercase sm:text-5xl lg:text-6xl">
             Precios y disponibilidad
           </h2>
           <p className="mt-4 max-w-2xl text-stone-700">
@@ -411,7 +411,7 @@ export default async function Home() {
               <p className="text-xs font-semibold tracking-[0.2em] text-terracotta-600 uppercase">
                 Ubicación
               </p>
-              <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-stone-900 uppercase sm:text-5xl lg:text-6xl">
+              <h2 className="mt-3 font-display text-4xl leading-tight font-bold text-stone-900 uppercase sm:text-5xl lg:text-6xl">
                 Fácil de encontrar, fácil de recorrer
               </h2>
               <p className="mt-5 text-stone-700">
@@ -482,7 +482,7 @@ export default async function Home() {
           <p className="text-xs font-semibold tracking-[0.2em] text-terracotta-600 uppercase">
             Antes de reservar
           </p>
-          <h2 className="mt-3 font-display text-4xl font-black tracking-tight text-stone-900 uppercase sm:text-5xl lg:text-6xl">
+          <h2 className="mt-3 font-display text-4xl leading-tight font-bold text-stone-900 uppercase sm:text-5xl lg:text-6xl">
             Preguntas frecuentes
           </h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">

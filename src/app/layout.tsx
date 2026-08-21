@@ -6,7 +6,7 @@ import "./globals.css";
 const display = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "900"],
+  weight: ["400", "500", "600", "700", "900"],
   style: ["normal", "italic"],
 });
 
