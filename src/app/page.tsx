@@ -314,9 +314,6 @@ export default async function Home() {
                     sizes={i === 0 ? "(min-width: 640px) 66vw, 100vw" : "(min-width: 640px) 33vw, 50vw"}
                     className="object-cover transition duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                    <p className="text-xs font-medium text-white">{photo.alt}</p>
-                  </div>
                 </div>
               ))}
             </div>
