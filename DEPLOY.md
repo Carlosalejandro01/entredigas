@@ -170,11 +170,45 @@ cuando quieras forzarlo).
   pestaña "Bloqueos manuales".
 - **Ver y confirmar reservas**: `/admin` → pestaña "Reservas".
 - **Cambiar fotos**: mándamelas por este chat y las subo yo.
-- **Poner un dominio propio** (por ejemplo `entrevigas.es` en vez de
-  `...vercel.app`): compra el dominio donde quieras (Namecheap, la
-  propia Vercel, etc.), luego en Vercel → tu proyecto → *Settings* →
-  *Domains* → escribe el dominio y sigue las instrucciones de DNS
-  que te da Vercel.
+- **Poner un dominio propio** (por ejemplo `entrevigasapartamento.com`
+  en vez de `...vercel.app`):
+
+  1. **Cómpralo.** En cualquier registrador de dominios — por ejemplo
+     Namecheap (namecheap.com) o la propia Vercel (vercel.com/domains).
+     Escribe el nombre que quieras (`entrevigasapartamento.com`,
+     `entrevigas.es`...) y te dirá si está libre y el precio (suele
+     rondar 10-15€/año para `.com`, algo más para `.es`). Sigue el
+     proceso de compra normal (datos de facturación, pago con
+     tarjeta).
+  2. **Añádelo a Vercel.** Entra en vercel.com → tu proyecto
+     (`entredigas`) → pestaña **Settings** → **Domains** → escribe el
+     dominio que acabas de comprar → **Add**.
+  3. **Configura el DNS.** Vercel te mostrará uno o dos registros que
+     tienes que dar de alta donde compraste el dominio (normalmente
+     un registro tipo `A` y/o `CNAME`, con el valor exacto que Vercel
+     te indique). Ve a la web del registrador → gestión del dominio →
+     DNS → añade esos registros tal cual te los da Vercel.
+     - Si compraste el dominio en la propia Vercel, este paso se hace
+       solo, no tienes que tocar nada.
+     - El cambio puede tardar de unos minutos a un par de horas en
+       activarse (propagación DNS). Vercel te avisa con un check
+       verde en la pantalla de *Domains* cuando ya está listo.
+  4. **Añade la variable `NEXT_PUBLIC_SITE_URL`.** En Vercel → tu
+     proyecto → **Settings** → **Environment Variables** → añade:
+     - Key: `NEXT_PUBLIC_SITE_URL`
+     - Value: `https://entrevigasapartamento.com` (tu dominio nuevo,
+       con `https://` delante y sin barra al final)
+
+     Esto hace que la web use tu dominio propio (y no el de
+     `...vercel.app`) en el mapa del sitio, las vistas previas al
+     compartir el enlace, etc. Después de añadirla, en la pestaña
+     **Deployments** pulsa los tres puntos del despliegue más
+     reciente → **Redeploy**, para que se aplique.
+  5. **Actualiza el enlace en Instagram y donde lo tengas puesto**,
+     cambiándolo por el dominio nuevo.
+
+  Si quieres, dime qué dominio has comprado en cuanto lo tengas y te
+  confirmo si el paso 4 ha quedado bien.
 - **Cualquier cambio futuro en la web**: pídemelo en este chat. Yo
   hago el cambio y lo subo a GitHub — Vercel detecta el cambio y
   vuelve a publicar la web solo, en 1-2 minutos, sin que tengas que
