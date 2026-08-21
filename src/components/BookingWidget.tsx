@@ -57,6 +57,40 @@ function formatDate(d: Date) {
   }).format(d);
 }
 
+function GuestStepper({
+  value,
+  max,
+  onChange,
+}: {
+  value: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(1, value - 1))}
+        disabled={value <= 1}
+        aria-label="Quitar un huésped"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-300 text-lg font-semibold text-stone-700 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        −
+      </button>
+      <span className="w-6 text-center font-display text-lg text-stone-900">{value}</span>
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(max, value + 1))}
+        disabled={value >= max}
+        aria-label="Añadir un huésped"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-300 text-lg font-semibold text-stone-700 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
 function useIsNarrowScreen() {
   const [narrow, setNarrow] = useState(false);
   useEffect(() => {
@@ -316,23 +350,14 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
                       placeholder="María García"
                     />
                   </label>
-                  <label className="grid gap-1 text-sm text-stone-700">
-                    Nº de huéspedes
-                    <input
-                      required
-                      type="number"
-                      min={1}
-                      max={maxGuests}
+                  <div className="grid gap-1 text-sm text-stone-700">
+                    <span>Nº de huéspedes</span>
+                    <GuestStepper
                       value={form.guests}
-                      onChange={(e) =>
-                        setForm((f) => ({
-                          ...f,
-                          guests: Math.min(maxGuests, Math.max(1, Number(e.target.value) || 1)),
-                        }))
-                      }
-                      className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-stone-900 outline-none focus:border-terracotta-500"
+                      max={maxGuests}
+                      onChange={(guests) => setForm((f) => ({ ...f, guests }))}
                     />
-                  </label>
+                  </div>
                   <label className="grid gap-1 text-sm text-stone-700">
                     Email
                     <input
@@ -430,26 +455,15 @@ export default function BookingWidget({ maxGuests }: { maxGuests: number }) {
             )}
 
             {nights > 0 && (
-              <label className="mt-4 grid gap-1 border-t border-stone-200 pt-4 text-sm text-stone-700">
-                Nº de huéspedes
-                <input
-                  type="number"
-                  min={1}
-                  max={maxGuests}
+              <div className="mt-4 grid gap-1 border-t border-stone-200 pt-4 text-sm text-stone-700">
+                <span>Nº de huéspedes</span>
+                <GuestStepper
                   value={form.guests}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      guests: Math.min(
-                        maxGuests,
-                        Math.max(1, Number(e.target.value) || 1)
-                      ),
-                    }))
-                  }
-                  className="w-24 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-stone-900 outline-none focus:border-terracotta-500"
+                  max={maxGuests}
+                  onChange={(guests) => setForm((f) => ({ ...f, guests }))}
                 />
                 <span className="text-xs text-stone-500">Máximo {maxGuests} huéspedes.</span>
-              </label>
+              </div>
             )}
 
             {quoteLoading && nights >= minNights && (
