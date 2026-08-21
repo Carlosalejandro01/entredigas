@@ -134,3 +134,10 @@ model FaqItem {
   answer   String
   order    Int    @default(0)
 }
+
+// Contador de visitas a la web, agregado por día — sin cookies ni datos
+// personales, solo para que el propietario vea cuánta gente la visita.
+model PageView {
+  date  String @id // formato AAAA-MM-DD
+  count Int    @default(0)
+}

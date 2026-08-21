@@ -119,12 +119,18 @@ export default async function PrivacidadPage() {
             </div>
 
             <div>
-              <h2 className="font-display text-lg text-stone-900">8. Cookies</h2>
+              <h2 className="font-display text-lg text-stone-900">8. Cookies y estadísticas de visitas</h2>
               <p className="mt-2">
                 Esta web no utiliza cookies de analítica ni de publicidad. Solo se utiliza una
                 cookie técnica, estrictamente necesaria, para mantener la sesión iniciada en el
                 panel privado del propietario — no afecta a los visitantes ni huéspedes que
                 consultan la web o hacen una reserva.
+              </p>
+              <p className="mt-2">
+                Llevamos un contador interno del número de visitas que recibe la web cada día,
+                únicamente para saber cuánta gente la consulta. Es un número agregado: no
+                identifica a quién visita la página, no usa cookies ni guarda direcciones IP ni
+                ningún otro dato personal.
               </p>
             </div>
           </div>

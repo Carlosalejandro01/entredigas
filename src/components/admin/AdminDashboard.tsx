@@ -73,7 +73,24 @@ type ExternalCalendar = {
   lastSyncCount: number | null;
 };
 
-type Tab = "reservas" | "bloqueos" | "sync" | "fotos" | "precios" | "detalles" | "faq" | "ajustes";
+type Tab =
+  | "reservas"
+  | "bloqueos"
+  | "sync"
+  | "fotos"
+  | "precios"
+  | "detalles"
+  | "faq"
+  | "visitas"
+  | "ajustes";
+
+type Analytics = {
+  total: number;
+  today: number;
+  last7: number;
+  last30: number;
+  daily: { date: string; count: number }[];
+};
 
 function fmtDate(s: string) {
   return new Intl.DateTimeFormat("es-ES", {
@@ -112,10 +129,11 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [dateRates, setDateRates] = useState<DateRate[] | null>(null);
   const [amenities, setAmenities] = useState<Amenity[] | null>(null);
   const [faqItems, setFaqItems] = useState<FaqItem[] | null>(null);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   async function loadAll() {
-    const [b, s, bl, ic, ph, pr, am, fq] = await Promise.all([
+    const [b, s, bl, ic, ph, pr, am, fq, an] = await Promise.all([
       fetch("/api/admin/bookings").then((r) => r.json()),
       fetch("/api/admin/settings").then((r) => r.json()),
       fetch("/api/admin/blocked").then((r) => r.json()),
@@ -124,6 +142,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       fetch("/api/admin/pricing").then((r) => r.json()),
       fetch("/api/admin/amenities").then((r) => r.json()),
       fetch("/api/admin/faq").then((r) => r.json()),
+      fetch("/api/admin/analytics").then((r) => r.json()),
     ]);
     setBookings(b.bookings ?? []);
     setSettings(s.settings ?? null);
@@ -136,6 +155,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     setDateRates(pr.dateRates ?? []);
     setAmenities(am.amenities ?? []);
     setFaqItems(fq.faqItems ?? []);
+    setAnalytics(an ?? null);
   }
 
   useEffect(() => {
@@ -202,6 +222,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               ["precios", "Precios"],
               ["detalles", "Detalles del apartamento"],
               ["faq", "Preguntas frecuentes"],
+              ["visitas", "Visitas"],
               ["ajustes", "Contenido y ajustes"],
             ] as [Tab, string][]
           ).map(([id, label]) => (
@@ -264,6 +285,7 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         {tab === "faq" && (
           <FaqTab faqItems={faqItems} onChanged={loadAll} onNotice={flash} />
         )}
+        {tab === "visitas" && <VisitsTab analytics={analytics} />}
         {tab === "ajustes" && (
           <SettingsTab settings={settings} onChanged={loadAll} onNotice={flash} />
         )}
@@ -2026,6 +2048,69 @@ function FaqTab({
             ))
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function VisitsTab({ analytics }: { analytics: Analytics | null }) {
+  if (!analytics) return <p className="text-sm text-stone-500">Cargando…</p>;
+
+  const maxCount = Math.max(1, ...analytics.daily.map((d) => d.count));
+
+  function fmtDayMonth(iso: string) {
+    return new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "2-digit" }).format(
+      new Date(`${iso}T00:00:00Z`)
+    );
+  }
+
+  return (
+    <div className="grid max-w-3xl gap-6">
+      <div className="rounded-xl border border-stone-200 bg-white p-6">
+        <p className="font-display text-lg text-stone-900">Visitas a la web</p>
+        <p className="mt-1 text-xs text-stone-500">
+          Solo un contador agregado de visitas por día — no se guarda ninguna
+          información personal ni cookies de seguimiento.
+        </p>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-lg border border-stone-200 p-3.5 text-center">
+            <p className="font-display text-2xl text-stone-900">{analytics.today}</p>
+            <p className="mt-0.5 text-xs text-stone-500">Hoy</p>
+          </div>
+          <div className="rounded-lg border border-stone-200 p-3.5 text-center">
+            <p className="font-display text-2xl text-stone-900">{analytics.last7}</p>
+            <p className="mt-0.5 text-xs text-stone-500">Últimos 7 días</p>
+          </div>
+          <div className="rounded-lg border border-stone-200 p-3.5 text-center">
+            <p className="font-display text-2xl text-stone-900">{analytics.last30}</p>
+            <p className="mt-0.5 text-xs text-stone-500">Últimos 30 días</p>
+          </div>
+          <div className="rounded-lg border border-stone-200 p-3.5 text-center">
+            <p className="font-display text-2xl text-stone-900">{analytics.total}</p>
+            <p className="mt-0.5 text-xs text-stone-500">Total histórico</p>
+          </div>
+        </div>
+
+        {analytics.daily.length === 0 ? (
+          <p className="mt-6 rounded-lg border border-dashed border-stone-300 p-4 text-center text-sm text-stone-500">
+            Todavía no hay visitas registradas.
+          </p>
+        ) : (
+          <div className="mt-6 flex h-40 items-end gap-1 border-b border-stone-200 pb-1">
+            {analytics.daily.map((d) => (
+              <div key={d.date} className="group relative flex-1">
+                <div
+                  className="w-full rounded-t bg-terracotta-500/70 transition group-hover:bg-terracotta-500"
+                  style={{ height: `${Math.max(4, (d.count / maxCount) * 100)}%` }}
+                />
+                <div className="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 rounded bg-stone-900 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition group-hover:opacity-100">
+                  {fmtDayMonth(d.date)}: {d.count}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

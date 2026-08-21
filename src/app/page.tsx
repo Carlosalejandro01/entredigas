@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import BookingWidget from "@/components/BookingWidget";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/booking";
+import { trackPageView } from "@/lib/analytics";
 import { getSiteUrl } from "@/lib/site-url";
 import { IconCheck, IconMapPin, IconStar, IconTag, IconUsers } from "@/components/icons";
 
@@ -147,6 +148,7 @@ export default async function Home() {
       orderBy: { order: "asc" },
       select: { id: true, question: true, answer: true },
     }),
+    trackPageView(),
   ]);
 
   const mapsUrl = settings.googleMapsUrl || FALLBACK_MAPS_URL;
