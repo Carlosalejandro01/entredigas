@@ -53,16 +53,21 @@ const DEFAULT_FAQ_ITEMS = [
   {
     question: "¿A qué hora es la entrada y la salida?",
     answer:
-      "Lo acordamos contigo según tu hora de llegada — escríbenos con antelación y lo cuadramos sin problema.",
+      "La entrada (check-in) es a partir de las 15:00 y la salida (check-out) hasta las 12:00. Si necesitas otro horario, escríbenos y lo vemos según disponibilidad.",
   },
   {
     question: "¿Se admiten mascotas?",
-    answer: "Consúltanoslo antes de reservar y te confirmamos.",
+    answer: "No, el apartamento no admite mascotas.",
   },
   {
     question: "¿Cuál es la política de cancelación?",
     answer:
-      "Te explicamos las condiciones exactas al confirmar tu reserva, antes de que quede cerrada.",
+      "Puedes cancelar sin coste hasta 14 días antes de la fecha de entrada. Pasado ese plazo, se cobrará el importe de la fianza en concepto de cancelación.",
+  },
+  {
+    question: "¿Hay que pagar una fianza?",
+    answer:
+      "No se paga por adelantado: al llegar se hace una recogida de fianza de 100€, que se devuelve íntegra al finalizar la estancia si todo está en orden.",
   },
 ];
 
