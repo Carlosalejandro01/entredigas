@@ -16,7 +16,7 @@ import { IconCheck, IconMapPin, IconStar, IconTag, IconUsers } from "@/component
 // despliegue de código.
 export const dynamic = "force-dynamic";
 
-const DEFAULT_HERO_TITLE = "Céntrico. Cómodo. Para hasta 6.";
+const DEFAULT_HERO_TITLE = "Entre Vigas\ntu segunda casa en Santillana del Mar";
 const DEFAULT_HERO_SUBTITLE =
   "Apartamento en el centro de Santillana del Mar, con dos habitaciones, dos baños y todo lo necesario para estar bien. Buena base para recorrer Cantabria sin complicarte.";
 const DEFAULT_ABOUT_TEXT =
@@ -220,8 +220,19 @@ export default async function Home() {
                 <IconMapPin className="h-3.5 w-3.5" />
                 Santillana del Mar, Cantabria
               </p>
-              <h1 className="mt-6 font-display text-5xl leading-[1.1] font-bold text-stone-900 uppercase sm:text-6xl lg:text-7xl">
-                {heroTitle}
+              <h1 className="mt-6 max-w-xl font-display leading-tight text-stone-900">
+                {heroTitle.split("\n").map((line, i) => (
+                  <span
+                    key={i}
+                    className={
+                      i === 0
+                        ? "block text-5xl font-bold tracking-tight uppercase sm:text-6xl lg:text-7xl"
+                        : "mt-1 block max-w-md text-balance text-2xl font-normal text-terracotta-600 italic sm:text-3xl lg:text-4xl"
+                    }
+                  >
+                    {line}
+                  </span>
+                ))}
               </h1>
               <p className="mt-6 max-w-xl text-lg whitespace-pre-line text-stone-700">
                 {heroSubtitle}
