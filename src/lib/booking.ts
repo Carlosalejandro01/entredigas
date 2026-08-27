@@ -1,8 +1,12 @@
 import crypto from "crypto";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { enumerateNights, isoDate, rangesOverlap } from "@/lib/dates";
 
-export async function getSettings() {
+// Memoizado por petición: en una misma carga de página se suele llamar más
+// de una vez (la propia página y el pie de página), y así comparten una
+// sola consulta en lugar de repetirla.
+export const getSettings = cache(async () => {
   const settings = await prisma.settings.upsert({
     where: { id: 1 },
     update: {},
@@ -15,7 +19,7 @@ export async function getSettings() {
     });
   }
   return settings;
-}
+});
 
 export async function getOccupiedRanges() {
   const [bookings, blocked] = await Promise.all([

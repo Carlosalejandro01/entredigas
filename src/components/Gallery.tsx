@@ -61,7 +61,6 @@ export default function Gallery({ photos }: { photos: Photo[] }) {
               src={photo.src}
               alt={photo.alt}
               fill
-              unoptimized={photo.src.startsWith("/api/")}
               sizes={i === 0 ? "(min-width: 640px) 66vw, 100vw" : "(min-width: 640px) 33vw, 50vw"}
               className="object-cover transition duration-500 group-hover:scale-105"
             />
@@ -102,7 +101,6 @@ export default function Gallery({ photos }: { photos: Photo[] }) {
                 src={photos[openIndex].src}
                 alt={photos[openIndex].alt}
                 fill
-                unoptimized={photos[openIndex].src.startsWith("/api/")}
                 sizes="100vw"
                 className="object-contain"
                 priority

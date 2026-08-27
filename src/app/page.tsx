@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { after } from "next/server";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookingWidget from "@/components/BookingWidget";
@@ -132,6 +133,10 @@ const fallbackGallery = [
 ];
 
 export default async function Home() {
+  // El contador de visitas se registra después de enviar la respuesta, para
+  // que no añada una consulta más a la ruta crítica de la carga de la página.
+  after(trackPageView);
+
   const [settings, heroPhoto, galleryPhotos, dbAmenities, dbFaqItems] = await Promise.all([
     getSettings(),
     prisma.photo.findFirst({
@@ -149,7 +154,6 @@ export default async function Home() {
       orderBy: { order: "asc" },
       select: { id: true, question: true, answer: true },
     }),
-    trackPageView(),
   ]);
 
   const mapsUrl = settings.googleMapsUrl || FALLBACK_MAPS_URL;
@@ -259,7 +263,6 @@ export default async function Home() {
                 alt={heroImageAlt}
                 fill
                 priority
-                unoptimized={heroImageSrc.startsWith("/api/")}
                 sizes="(min-width: 1024px) 40vw, 90vw"
                 className="object-cover"
               />
