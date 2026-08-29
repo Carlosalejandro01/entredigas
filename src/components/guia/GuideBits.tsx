@@ -77,11 +77,23 @@ export type Restaurant = {
   description: string;
   note?: string;
   top?: boolean;
+  favorito?: boolean;
 };
 
 export function RestaurantCard({ r }: { r: Restaurant }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white/70 p-5">
+    <div
+      className={
+        r.favorito
+          ? "relative rounded-2xl border-2 border-terracotta-500 bg-terracotta-500/5 p-5 shadow-[0_8px_24px_-12px_rgba(181,96,47,0.5)]"
+          : "rounded-2xl border border-stone-200 bg-white/70 p-5"
+      }
+    >
+      {r.favorito && (
+        <span className="absolute -top-3 left-4 inline-flex items-center gap-1 rounded-full bg-terracotta-500 px-3 py-1 text-xs font-semibold text-white shadow">
+          ❤ Nuestro favorito
+        </span>
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-display text-lg text-stone-900">

@@ -500,6 +500,7 @@ export const restaurantesDestacados: Restaurant[] = [
     place: "Plaza del Rey · Santillana del Mar",
     km: "0 km",
     time: "a pie",
+    favorito: true,
     tags: ["TOP pizzas", "Horno de piedra", "Soportales Plaza del Rey"],
     description:
       "La mejor pizza de Santillana, bajo los soportales de la Plaza del Rey. Masa de larga fermentación, producto italiano de calidad y un punto de horno impecable. Más de una década en el mismo sitio sin bajar el nivel.",
